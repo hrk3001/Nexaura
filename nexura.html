@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexaura — The Algorithm Kingdom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#05070f; --bg1:#0a1122; --panel:rgba(16,24,48,.62); --panel2:rgba(10,16,34,.85);
+  --line:rgba(148,170,255,.14); --line2:rgba(148,170,255,.28);
+  --em:#34d399; --em2:#10b981; --gold:#f5c453; --pur:#a78bfa; --blue:#60a5fa; --red:#f87171; --cyan:#4df0ff;
+  --tx:#e8ecf8; --tx2:#9aa7c7; --tx3:#66739a;
+  --disp:'Cinzel',serif; --ui:'Manrope',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+body.acc-amethyst{--em:#a78bfa;--em2:#8b5cf6;--cyan:#c4b5fd}
+body.acc-aurum{--em:#f5c453;--em2:#eab308;--cyan:#fde68a}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--tx);font-family:var(--ui);overflow-x:hidden;min-height:100vh}
+body.bigtext{font-size:18px}
+body.reduce .anim, body.reduce .orb, body.reduce .ember{animation:none!important}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+.screen{position:relative;z-index:1;display:none}
+.screen.on{display:block}
+.hide{display:none!important}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+h1,h2,h3,.disp{font-family:var(--disp)}
+a{color:inherit}
+button{font-family:var(--ui);cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:var(--ui);color:var(--tx)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#233054;border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- generic ---------- */
+.glass{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:16px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:12px;font-weight:700;font-size:15px;letter-spacing:.3px;transition:.2s;border:1px solid transparent;white-space:nowrap}
+.btn-gold{background:linear-gradient(135deg,#f7d074,#d99a1f);color:#241a02;box-shadow:0 6px 24px rgba(245,196,83,.35)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(245,196,83,.5)}
+.btn-em{background:linear-gradient(135deg,var(--em),var(--em2));color:#04120c;box-shadow:0 6px 24px rgba(52,211,153,.3)}
+.btn-em:hover{transform:translateY(-2px)}
+.btn-ghost{border:1px solid var(--line2);background:rgba(255,255,255,.03)}
+.btn-ghost:hover{background:rgba(255,255,255,.08);border-color:var(--em)}
+.btn-pur{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.btn-sm{padding:8px 14px;font-size:13px;border-radius:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.xpbar{height:10px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;position:relative}
+.xpbar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--em2),var(--em),var(--cyan));position:relative;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.xpbar>i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:shine 2.4s infinite}
+@keyframes shine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.hpbar{height:14px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);overflow:hidden}
+.hpbar>i{display:block;height:100%;background:linear-gradient(90deg,#ef4444,#f97316);transition:width .4s}
+.hpbar.pl>i{background:linear-gradient(90deg,var(--em2),var(--em))}
+.tag{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)}
+
+/* ---------- orbs/background ---------- */
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;pointer-events:none;animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,-50px) scale(1.15)}}
+.ember{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--gold);opacity:.7;animation:rise linear infinite;pointer-events:none}
+@keyframes rise{from{transform:translateY(0);opacity:.8}to{transform:translateY(-110vh);opacity:0}}
+
+/* ---------- landing ---------- */
+#lnav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:14px 30px;background:rgba(5,7,15,.55);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:900;font-size:20px;letter-spacing:2px}
+.logo .gem{width:26px;height:26px;background:conic-gradient(from 200deg,var(--em),var(--pur),var(--gold),var(--em));clip-path:polygon(50% 0,100% 38%,79% 100%,21% 100%,0 38%);animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;padding:120px 20px 60px}
+.hero .crystal{position:absolute;width:60px;height:90px;background:linear-gradient(160deg,rgba(167,139,250,.9),rgba(52,211,153,.5));clip-path:polygon(50% 0,100% 30%,82% 100%,18% 100%,0 30%);filter:drop-shadow(0 0 24px rgba(167,139,250,.7));animation:float 5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-22px) rotate(6deg)}}
+.hero h1{font-size:clamp(52px,9vw,110px);font-weight:900;letter-spacing:6px;background:linear-gradient(180deg,#fff 15%,var(--gold) 60%,#b97f16);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 30px rgba(245,196,83,.35));line-height:1.05}
+.hero .sub{font-family:var(--disp);color:var(--cyan);letter-spacing:8px;font-size:clamp(12px,2vw,18px);margin-top:8px;text-transform:uppercase}
+.hero p.lead{max-width:640px;color:var(--tx2);margin:26px auto 34px;font-size:17px;line-height:1.7}
+.hero .cta{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.hero .stats{display:flex;gap:34px;margin-top:54px;flex-wrap:wrap;justify-content:center}
+.hero .stats div{text-align:center}
+.hero .stats b{font-size:26px;font-family:var(--disp);color:var(--gold);display:block}
+.hero .stats span{color:var(--tx3);font-size:13px;letter-spacing:1px;text-transform:uppercase}
+section.blk{padding:90px 0;position:relative}
+.blk h2{font-size:clamp(28px,4vw,42px);text-align:center;margin-bottom:10px}
+.blk .bsub{color:var(--tx2);text-align:center;max-width:560px;margin:0 auto 46px;line-height:1.6}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.fcard{padding:28px;transition:.25s;position:relative;overflow:hidden}
+.fcard:hover{transform:translateY(-5px);border-color:var(--em)}
+.fcard .ic{font-size:34px;margin-bottom:14px;display:inline-block;filter:drop-shadow(0 0 12px rgba(52,211,153,.5))}
+.fcard h3{font-size:19px;margin-bottom:8px}
+.fcard p{color:var(--tx2);font-size:14.5px;line-height:1.65}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;counter-reset:st}
+.step{padding:26px;position:relative}
+.step::before{counter-increment:st;content:"0" counter(st);font-family:var(--disp);font-size:40px;font-weight:900;color:transparent;-webkit-text-stroke:1px var(--em);opacity:.9;display:block;margin-bottom:10px}
+.step h3{font-size:17px;margin-bottom:6px}
+.step p{color:var(--tx2);font-size:13.5px;line-height:1.6}
+.wprev{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.wcard{padding:20px;position:relative;overflow:hidden;transition:.25s;cursor:pointer}
+.wcard:hover{transform:translateY(-4px)}
+.wcard .wbar{height:110px;border-radius:12px;margin-bottom:14px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:44px}
+.wcard .wbar::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.25),transparent 55%)}
+.wcard h3{font-size:16px}.wcard .meta{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx2)}
+.wcard .lockov{position:absolute;inset:0;background:rgba(5,7,15,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--tx2);backdrop-filter:blur(2px)}
+.quote{padding:26px;font-size:15px;line-height:1.7;color:var(--tx2)}
+.quote b{display:block;margin-top:14px;color:var(--tx)}
+.quote .st{color:var(--gold)}
+.finale{text-align:center;padding:110px 20px}
+.finale h2{font-size:clamp(30px,5vw,52px)}
+footer{border-top:1px solid var(--line);padding:30px;text-align:center;color:var(--tx3);font-size:13px}
+
+/* ---------- auth ---------- */
+.authbox{max-width:960px;margin:9vh auto;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;border-radius:20px}
+.authside{background:linear-gradient(160deg,rgba(52,211,153,.15),rgba(124,58,237,.2)),var(--panel2);padding:44px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line)}
+.authside h2{font-size:30px;line-height:1.25;margin:14px 0}
+.authside p{color:var(--tx2);line-height:1.7;font-size:14.5px}
+.authform{padding:44px;background:var(--panel2)}
+.authform h3{font-size:24px;margin-bottom:22px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--tx2);margin-bottom:6px;letter-spacing:.5px}
+.field input,.field select{width:100%;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--line);outline:none;font-size:14.5px;transition:.2s}
+.field input:focus,.field select:focus{border-color:var(--em);box-shadow:0 0 0 3px rgba(52,211,153,.15)}
+.auth-tabs{display:flex;gap:8px;margin-bottom:24px}
+.auth-tabs button{flex:1;padding:10px;border-radius:10px;font-weight:700;border:1px solid var(--line);color:var(--tx2)}
+.auth-tabs button.on{background:rgba(52,211,153,.14);border-color:var(--em);color:var(--tx)}
+.authmsg{min-height:20px;font-size:13px;margin-top:10px}
+.divider{display:flex;align-items:center;gap:12px;color:var(--tx3);font-size:12px;margin:20px 0}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.shake{animation:shk .4s}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* ---------- character creation ---------- */
+.ccbox{max-width:760px;margin:8vh auto;padding:40px;text-align:center}
+.ccprev{width:150px;height:150px;margin:22px auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.2),rgba(124,58,237,.25)),var(--panel2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:64px;box-shadow:0 0 50px rgba(245,196,83,.3)}
+.avgrid{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+.avgrid button{width:60px;height:60px;font-size:30px;border-radius:14px;border:2px solid var(--line);background:rgba(255,255,255,.04);transition:.15s}
+.avgrid button.on{border-color:var(--gold);background:rgba(245,196,83,.12);transform:scale(1.08)}
+.ccbox input{width:100%;padding:13px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--line);text-align:center;font-size:17px;outline:none}
+
+/* ---------- app shell ---------- */
+#scr-app{height:100vh;display:none}
+#scr-app.on{display:grid;grid-template-columns:236px 1fr}
+#side{background:rgba(8,12,26,.85);backdrop-filter:blur(14px);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 14px;z-index:5}
+#side .logo{padding:6px 10px 22px;font-size:18px}
+.nav-it{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:12px;font-weight:600;color:var(--tx2);font-size:14.5px;margin-bottom:4px;transition:.15s;text-align:left}
+.nav-it:hover{background:rgba(255,255,255,.05);color:var(--tx)}
+.nav-it.on{background:linear-gradient(90deg,rgba(52,211,153,.16),transparent);color:var(--tx);border-left:3px solid var(--em);padding-left:11px}
+#side .spacer{flex:1}
+.pchip{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.pchip .av{width:40px;height:40px;border-radius:50%;background:rgba(124,58,237,.3);display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid var(--gold)}
+.pchip b{font-size:13.5px;display:block}.pchip span{font-size:11.5px;color:var(--gold)}
+#main{overflow-y:auto;position:relative}
+#tb{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:16px;padding:14px 28px;background:rgba(5,7,15,.7);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+#tb .ttl{font-family:var(--disp);font-size:18px;flex:1}
+.coin{display:inline-flex;align-items:center;gap:6px;font-weight:800;color:var(--gold)}
+.tb-lv{display:flex;align-items:center;gap:10px;min-width:220px}
+.tb-lv .xpbar{flex:1}
+.pane{display:none;padding:30px;max-width:1100px;margin:0 auto}
+.pane.on{display:block;animation:fin .35s}
+@keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.phead h2{font-size:26px}
+
+/* dashboard */
+.dash{display:grid;grid-template-columns:1.5fr 1fr;gap:20px}
+.dcard{padding:24px}
+.dhero{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.dav{width:96px;height:96px;border-radius:24px;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.22),rgba(52,211,153,.2)),var(--panel2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:46px;box-shadow:0 0 34px rgba(245,196,83,.25)}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin-top:20px}
+.stat{padding:16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);text-align:center}
+.stat b{font-size:22px;font-family:var(--disp);display:block}
+.stat span{font-size:11.5px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px}
+.qrow{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:8px;font-size:14px}
+.qrow.done{opacity:.55;text-decoration:line-through}
+.achstrip{display:flex;gap:10px;flex-wrap:wrap}
+.achb{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(245,196,83,.1);border:1px solid rgba(245,196,83,.4)}
+.achb.off{filter:grayscale(1);opacity:.35;border-color:var(--line);background:rgba(255,255,255,.03)}
+
+/* worlds page */
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.wbig{padding:0;overflow:hidden;cursor:pointer;transition:.25s}
+.wbig:hover{transform:translateY(-5px);border-color:var(--line2)}
+.wbig .ban{height:130px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.wbig .ban::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 15%,rgba(255,255,255,.22),transparent 55%)}
+.wbig .bd{padding:18px}
+.wbig h3{font-size:18px;margin-bottom:4px}
+.wbig .ds{color:var(--tx2);font-size:13px;line-height:1.55;min-height:40px}
+.wbig .infs{display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin:12px 0 8px}
+
+/* inventory */
+.invgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.item{padding:18px;position:relative}
+.item .ic{font-size:34px}
+.item h4{margin:10px 0 4px;font-size:15px}
+.item p{font-size:12.5px;color:var(--tx2);line-height:1.5}
+.rar-common{border-left:3px solid #9aa7c7}.rar-rare{border-left:3px solid var(--blue)}.rar-epic{border-left:3px solid var(--pur)}.rar-legend{border-left:3px solid var(--gold)}
+.item .qty{position:absolute;top:12px;right:14px;font-size:12px;color:var(--tx2);font-weight:700}
+.equiptag{position:absolute;top:12px;left:-1px;background:var(--em);color:#04120c;font-size:10px;font-weight:800;padding:3px 8px;border-radius:0 8px 8px 0;letter-spacing:1px}
+
+/* leaderboard */
+.lbrow{display:grid;grid-template-columns:52px 1fr 110px 110px;gap:10px;align-items:center;padding:13px 18px;border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,.03);border:1px solid transparent}
+.lbrow.me{border-color:var(--gold);background:rgba(245,196,83,.08)}
+.lbrow .rk{font-family:var(--disp);font-weight:900;color:var(--tx3);font-size:16px}
+.lbrow:nth-child(2) .rk{color:var(--gold)}.lbrow:nth-child(3) .rk{color:#c0c8d8}.lbrow:nth-child(4) .rk{color:#b97f4a}
+.tabs{display:flex;gap:8px;margin-bottom:18px}
+.tabs button{padding:9px 18px;border-radius:10px;border:1px solid var(--line);font-weight:700;font-size:13.5px;color:var(--tx2)}
+.tabs button.on{border-color:var(--em);color:var(--tx);background:rgba(52,211,153,.12)}
+
+/* analytics */
+.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:99px}
+.ana-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+
+/* profile/settings */
+.setrow{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.setrow:last-child{border:none}
+.setrow .lab b{display:block;font-size:14.5px}.setrow .lab span{font-size:12.5px;color:var(--tx3)}
+.sw{width:52px;height:28px;border-radius:99px;background:rgba(255,255,255,.12);position:relative;transition:.2s;border:1px solid var(--line)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--em2)}
+.sw.on::after{left:26px}
+
+/* ---------- GAME ---------- */
+#scr-game{position:fixed;inset:0;background:#02040a;z-index:30;display:none}
+#scr-game.on{display:block}
+#gcanvas{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);image-rendering:pixelated;box-shadow:0 0 80px rgba(0,0,0,.8);border-radius:6px}
+#ghud{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:3}
+#ghud .gl{display:flex;flex-direction:column;gap:8px}
+.hudchip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;background:rgba(6,10,22,.75);backdrop-filter:blur(8px);border:1px solid var(--line);font-size:13px;font-weight:700;pointer-events:auto}
+.hudchip .xpbar{width:120px;height:7px}
+#qtrack{max-width:280px;padding:12px 16px;border-radius:12px;background:rgba(6,10,22,.78);border:1px solid rgba(245,196,83,.35);font-size:12.5px;line-height:1.5;pointer-events:auto}
+#qtrack b{color:var(--gold);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:4px}
+#gbtn-exit{position:absolute;bottom:16px;right:16px;z-index:4}
+#gworld-name{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-family:var(--disp);color:rgba(232,236,248,.75);letter-spacing:4px;font-size:14px;text-transform:uppercase;z-index:3;text-shadow:0 2px 8px #000}
+#tpad{position:absolute;bottom:18px;left:18px;z-index:4;display:none;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px);gap:6px}
+#tpad button{background:rgba(255,255,255,.1);border:1px solid var(--line2);border-radius:12px;font-size:20px;color:#fff}
+#tpad button:active{background:rgba(52,211,153,.4)}
+@media (pointer:coarse){#tpad{display:grid}}
+
+/* dialog box */
+#dlgbox{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);width:min(760px,92vw);z-index:5;padding:20px 24px;background:linear-gradient(160deg,rgba(14,20,40,.95),rgba(8,12,26,.95));border:1px solid rgba(245,196,83,.4);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none}
+#dlgbox.on{display:block;animation:fin .25s}
+#dlgbox .who{position:absolute;top:-16px;left:22px;background:linear-gradient(135deg,#f7d074,#d99a1f);color:#241a02;font-weight:800;font-size:13px;padding:5px 16px;border-radius:99px;display:flex;gap:8px;align-items:center}
+#dlgbox .txt{font-size:16px;line-height:1.7;margin-top:10px;min-height:52px}
+#dlgbox .chs{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+#dlgbox .chs button{padding:9px 18px;border-radius:10px;border:1px solid var(--em);color:var(--em);font-weight:700;font-size:13.5px;background:rgba(52,211,153,.07)}
+#dlgbox .chs button:hover{background:rgba(52,211,153,.2)}
+#dlgbox .cont{position:absolute;right:20px;bottom:12px;color:var(--gold);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.2}}
+
+/* ---------- modals ---------- */
+#mlayer{position:fixed;inset:0;z-index:50}
+.mback{position:absolute;inset:0;background:rgba(3,5,12,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fin .2s;overflow-y:auto}
+.modal{background:linear-gradient(165deg,rgba(20,28,56,.97),rgba(9,13,28,.98));border:1px solid var(--line2);border-radius:20px;width:100%;box-shadow:0 30px 90px rgba(0,0,0,.7);animation:pop .28s cubic-bezier(.2,.9,.3,1.2);position:relative;margin:auto}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.modal .mhead{display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--line)}
+.modal .mhead h3{font-size:19px;flex:1}
+.mx{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);font-size:16px;color:var(--tx2)}
+.mx:hover{border-color:var(--red);color:var(--red)}
+.mbody{padding:24px}
+
+/* code modal */
+.cm{max-width:1200px}
+.cm .mbody{display:grid;grid-template-columns:380px 1fr;gap:20px;padding:20px 24px}
+@media(max-width:980px){.cm .mbody{grid-template-columns:1fr}}
+.pstmt{font-size:14px;line-height:1.7;color:var(--tx2)}
+.pstmt b{color:var(--tx)}
+.tcase{display:flex;justify-content:space-between;padding:9px 12px;border-radius:9px;background:rgba(255,255,255,.04);font-family:var(--mono);font-size:12px;margin-bottom:6px}
+.tcase.pass{border:1px solid rgba(52,211,153,.5)}.tcase.fail{border:1px solid rgba(248,113,113,.5)}
+.editor-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line2);background:#0a0f1e}
+.editor-wrap pre,.editor-wrap textarea{font-family:var(--mono);font-size:13.5px;line-height:1.65;padding:14px;margin:0;white-space:pre;tab-size:2}
+.editor-wrap pre{position:absolute;inset:0;overflow:hidden;color:#5f6c8f;text-align:right;user-select:none;background:#0d1428;border-right:1px solid var(--line);width:44px;padding:14px 8px}
+.editor-wrap textarea{position:relative;background:transparent;border:none;outline:none;resize:none;width:100%;height:280px;color:#d7e2ff;padding-left:56px;display:block;caret-color:var(--em)}
+.console{margin-top:12px;background:#060a16;border:1px solid var(--line);border-radius:12px;padding:14px;font-family:var(--mono);font-size:12.5px;max-height:190px;overflow-y:auto;line-height:1.7}
+.console .ok{color:var(--em)}.console .bad{color:var(--red)}.console .info{color:var(--cyan)}.console .warn{color:var(--gold)}
+.oracle{margin-top:14px;border:1px solid rgba(167,139,250,.4);border-radius:12px;background:rgba(167,139,250,.06);padding:14px}
+.oracle .oh{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--pur);font-size:13px;margin-bottom:10px}
+.oracle .omsgs{max-height:150px;overflow-y:auto;font-size:13px;line-height:1.6;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.om{padding:9px 12px;border-radius:10px;max-width:95%}
+.om.ai{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25)}
+.om.me{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);align-self:flex-end}
+.oquick{display:flex;gap:6px;flex-wrap:wrap}
+.oquick button{font-size:11.5px;padding:6px 11px;border-radius:99px;border:1px solid rgba(167,139,250,.5);color:#c4b5fd;font-weight:700}
+.oquick button:hover{background:rgba(167,139,250,.18)}
+
+/* combat */
+.combat{max-width:680px}
+.arena{display:flex;justify-content:space-around;align-items:center;padding:26px 10px 6px;position:relative}
+.fighter{text-align:center;width:200px}
+.fighter canvas{image-rendering:pixelated;filter:drop-shadow(0 12px 18px rgba(0,0,0,.6))}
+.fighter .nm{font-family:var(--disp);font-weight:700;margin:8px 0 6px;font-size:15px}
+.shake{animation:shk .35s}
+.flash{animation:fls .35s}
+@keyframes fls{0%,100%{filter:none}50%{filter:brightness(3) saturate(0)}}
+.dmgfloat{position:absolute;font-family:var(--disp);font-weight:900;font-size:26px;color:var(--red);animation:dfl 1s forwards;pointer-events:none;text-shadow:0 2px 6px #000;z-index:9}
+.dmgfloat.heal{color:var(--em)}.dmgfloat.magic{color:var(--pur)}
+@keyframes dfl{from{transform:translateY(0);opacity:1}to{transform:translateY(-60px);opacity:0}}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;padding:18px 24px 24px}
+.acts button{padding:13px;border-radius:12px;border:1px solid var(--line2);background:rgba(255,255,255,.04);font-weight:700;font-size:13.5px;transition:.15s}
+.acts button:hover:not(:disabled){border-color:var(--em);background:rgba(52,211,153,.12);transform:translateY(-2px)}
+.acts button:disabled{opacity:.4}
+.clog{padding:0 24px 18px;font-size:13px;color:var(--tx2);min-height:36px;text-align:center;font-style:italic}
+
+/* reward/victory */
+.rew{text-align:center;padding:10px}
+.rew .big{font-size:56px;animation:float 3s ease-in-out infinite;display:inline-block}
+.rew h2{font-size:30px;margin:10px 0;background:linear-gradient(180deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.rewitems{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.rewitems div{padding:12px 18px;border-radius:12px;background:rgba(245,196,83,.09);border:1px solid rgba(245,196,83,.4);font-weight:700}
+.confp{position:fixed;top:-12px;width:9px;height:14px;z-index:99;animation:cf linear forwards;pointer-events:none}
+@keyframes cf{to{transform:translateY(105vh) rotate(720deg)}}
+
+/* toast */
+#toasts{position:fixed;top:18px;right:18px;z-index:98;display:flex;flex-direction:column;gap:10px;max-width:340px}
+.toast{padding:14px 18px;border-radius:14px;background:rgba(12,18,38,.95);border:1px solid var(--line2);font-size:13.5px;line-height:1.5;box-shadow:0 12px 40px rgba(0,0,0,.5);animation:tin .3s cubic-bezier(.2,.9,.3,1.2)}
+.toast.gold{border-color:var(--gold)}.toast.em{border-color:var(--em)}.toast.bad{border-color:var(--red)}.toast.pur{border-color:var(--pur)}
+.toast b{display:block;font-size:14px}
+@keyframes tin{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+.lvup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:97;pointer-events:none}
+.lvup span{font-family:var(--disp);font-weight:900;font-size:clamp(40px,8vw,90px);background:linear-gradient(180deg,#fff,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;animation:lv 2s forwards;filter:drop-shadow(0 0 40px rgba(245,196,83,.6))}
+@keyframes lv{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.1);opacity:1}75%{transform:scale(1);opacity:1}100%{transform:scale(1.4);opacity:0}}
+@media(max-width:900px){
+  #scr-app.on{grid-template-columns:64px 1fr}
+  #side .nav-it span.tx,#side .logo span,#side .pchip .pi{display:none}
+  .authbox{grid-template-columns:1fr}.authside{display:none}
+  .dash{grid-template-columns:1fr}
+  .lbrow{grid-template-columns:40px 1fr 80px}
+  .lbrow .wcol{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div id="toasts"></div>
+<div id="mlayer"></div>
+
+<!-- ============ LANDING ============ -->
+<section id="scr-landing" class="screen on">
+  <nav id="lnav">
+    <div class="logo"><div class="gem"></div><span>NEXAURA</span></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost btn-sm" onclick="showAuth('login')">Login</button>
+      <button class="btn btn-gold btn-sm" onclick="showAuth('register')">Play Now ⚔️</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="orb" style="width:480px;height:480px;background:#10b981;top:10%;left:-140px"></div>
+    <div class="orb" style="width:420px;height:420px;background:#7c3aed;bottom:0;right:-120px;animation-delay:-6s"></div>
+    <div class="crystal" style="top:22%;left:14%"></div>
+    <div class="crystal" style="top:30%;right:12%;animation-delay:-2.4s;transform:scale(.7)"></div>
+    <div class="crystal" style="bottom:18%;left:22%;animation-delay:-4s;transform:scale(.5)"></div>
+    <span class="tag">Learn DSA • Play an RPG • Master Algorithms</span>
+    <h1>NEXAURA</h1>
+    <div class="sub">The Algorithm Kingdom</div>
+    <p class="lead">The Null King has shattered the Great Algorithms. Become an adventurer, explore eight handcrafted realms, and restore the kingdom by solving <b style="color:var(--tx)">real coding challenges</b> — guided by an AI Oracle that adapts to you.</p>
+    <div class="cta">
+      <button class="btn btn-gold" onclick="showAuth('register')">⚔️ Play Now</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('worldsPrev').scrollIntoView()">🗺️ Explore Worlds</button>
+      <button class="btn btn-ghost" onclick="showAuth('login')">Login</button>
+    </div>
+    <div class="stats">
+      <div><b>8</b><span>Realms</span></div>
+      <div><b>30+</b><span>Code Trials</span></div>
+      <div><b>4</b><span>Languages</span></div>
+      <div><b>1</b><span>AI Oracle</span></div>
+    </div>
+  </div>
+
+  <section class="blk"><div class="wrap">
+    <span class="tag" style="display:block;text-align:center">Why Nexaura</span>
+    <h2>Learning, forged into Adventure</h2>
+    <p class="bsub">Every mechanic is a teaching mechanic. XP is earned by correct code, bosses fall to better algorithms, and the Oracle watches your every move.</p>
+    <div class="grid3">
+      <div class="glass fcard"><span class="ic">🏰</span><h3>Realm-Based Curriculum</h3><p>Eight worlds mapped to the DSA syllabus — Arrays, Strings, Linked Lists, Stacks, Trees, Graphs and more — each with its own biome, lore and boss.</p></div>
+      <div class="glass fcard"><span class="ic">🤖</span><h3>AI Oracle (Gemini)</h3><p>Stuck? The Oracle generates hints, performs wrong-answer forensics, suggests optimizations and forges fresh practice problems on demand.</p></div>
+      <div class="glass fcard"><span class="ic">🧪</span><h3>Real Code Trials</h3><p>A built-in editor with a sandboxed judge: visible tests, hidden tests, custom validators, stdout capture and time-limit protection.</p></div>
+      <div class="glass fcard"><span class="ic">⚔️</span><h3>Boss Battles by Algorithm</h3><p>You don't mash buttons — you land finishing blows by solving harder problems under pressure, with spells powered by Big-O quizzes.</p></div>
+      <div class="glass fcard"><span class="ic">📈</span><h3>Adaptive Difficulty</h3><p>Struggling? Hints, visual explanations and simpler drills. Dominating? Elite trials, bonus XP and hidden test gauntlets unlock.</p></div>
+      <div class="glass fcard"><span class="ic">🎒</span><h3>Loot & Legacy</h3><p>Weapons, relics, badges, titles and skins — every item reflects a real skill milestone. Analytics reveal your weak topics.</p></div>
+    </div>
+  </div></section>
+
+  <section class="blk" style="background:linear-gradient(180deg,transparent,rgba(16,24,48,.5),transparent)"><div class="wrap">
+    <span class="tag" style="display:block;text-align:center">The Loop</span>
+    <h2>How It Works</h2>
+    <p class="bsub">From first login to restored kingdom in four beats.</p>
+    <div class="steps">
+      <div class="glass step"><h3>Create your Adventurer</h3><p>Pick an avatar, claim a name, and awaken in the Tutorial Village where the Old Sage awaits.</p></div>
+      <div class="glass step"><h3>Explore a Realm</h3><p>Roam with WASD, talk to NPCs, accept quests, loot chests and dodge roaming Glitchlings.</p></div>
+      <div class="glass step"><h3>Solve the Runestones</h3><p>Each runestone opens a real coding trial. Pass hidden tests to restore the seal and weaken the boss.</p></div>
+      <div class="glass step"><h3>Slay, Level, Ascend</h3><p>Defeat the realm boss in a code-battle, earn loot and XP, and unlock the next realm of the kingdom.</p></div>
+    </div>
+  </div></section>
+
+  <section class="blk" id="worldsPrev"><div class="wrap">
+    <span class="tag" style="display:block;text-align:center">The Map of Nexaura</span>
+    <h2>Eight Realms Await</h2>
+    <p class="bsub">Each realm is a data-structure. Each boss is a classic problem wearing a crown.</p>
+    <div class="wprev" id="wprev"></div>
+  </div></section>
+
+  <section class="blk"><div class="wrap">
+    <span class="tag" style="display:block;text-align:center">Artificial Intelligence</span>
+    <h2>The Oracle Sees Your Code</h2>
+    <p class="bsub">Powered by the Gemini API when a key is provided, with a full offline rule-based fallback.</p>
+    <div class="grid3">
+      <div class="glass fcard"><span class="ic">💡</span><h3>Hint Engine</h3><p>Progressive hints — a nudge first, strategy second, full blueprint third. Free the first time; wisdom costs gold after.</p></div>
+      <div class="glass fcard"><span class="ic">🔬</span><h3>Error Forensics</h3><p>Timeouts, off-by-ones, brute-force patterns — the Oracle reads your failed submission and tells you <i>why</i> it fell.</p></div>
+      <div class="glass fcard"><span class="ic">⚒️</span><h3>Practice Forge</h3><p>One click generates a fresh variant of the current trial with new data, so you can grind without repetition.</p></div>
+    </div>
+  </div></section>
+
+  <section class="blk"><div class="wrap">
+    <h2>Voices from the Kingdom</h2>
+    <p class="bsub">Placeholder testimonials — soon to be replaced by real adventurers.</p>
+    <div class="grid3">
+      <div class="glass quote">"I finally understand hash maps because a Duplicate Colossus was trying to eat me. 10/10 pedagogy."<span class="st">★★★★★</span><b>— Placeholder Paladin</b></div>
+      <div class="glass quote">"My students finished the Forest of Arrays without being asked twice. That has never happened with worksheets."<span class="st">★★★★★</span><b>— Placeholder Professor</b></div>
+      <div class="glass quote">"The Oracle's wrong-answer forensics are scarier than my code reviews. In a good way."<span class="st">★★★★★</span><b>— Placeholder SWE</b></div>
+    </div>
+  </div></section>
+
+  <div class="finale">
+    <h2>The Kingdom Needs Its Hero</h2>
+    <p class="bsub" style="color:var(--tx2);margin:14px auto 30px">Your first runestone is waiting in the Tutorial Village.</p>
+    <button class="btn btn-gold" style="font-size:18px;padding:16px 40px" onclick="showAuth('register')">⚔️ Begin the Adventure</button>
+  </div>
+  <footer>NEXAURA · The Algorithm Kingdom · Engineering Project · Crafted with logic &amp; a little magic · 2026</footer>
+</section>
+
+<!-- ============ AUTH ============ -->
+<section id="scr-auth" class="screen">
+  <div class="authbox glass">
+    <div class="authside">
+      <div class="logo"><div class="gem"></div><span>NEXAURA</span></div>
+      <h2>The gate recognizes only those who dare.</h2>
+      <p>Sign in to carry your progress, XP, loot and titles across sessions. New adventurers awaken in the Tutorial Village with a rusty sword and enormous potential.</p>
+      <p style="margin-top:16px;font-size:12.5px;color:var(--tx3)">Demo build: accounts are stored locally in your browser. In the full-stack deployment this screen talks to Express + MongoDB with JWT.</p>
+    </div>
+    <div class="authform" id="authform">
+      <div class="auth-tabs">
+        <button id="tab-login" class="on" onclick="authTab('login')">Login</button>
+        <button id="tab-register" onclick="authTab('register')">Register</button>
+      </div>
+      <form id="f-login" onsubmit="return doLogin(event)">
+        <div class="field"><label>EMAIL</label><input type="email" id="li-email" required placeholder="hero@nexaura.quest"></div>
+        <div class="field"><label>PASSWORD</label><input type="password" id="li-pass" required placeholder="••••••••"></div>
+        <button class="btn btn-gold" style="width:100%">Enter the Kingdom</button>
+        <div style="text-align:right;margin-top:10px"><button type="button" style="color:var(--tx3);font-size:12.5px" onclick="doForgot()">Forgot password?</button></div>
+      </form>
+      <form id="f-register" class="hide" onsubmit="return doRegister(event)">
+        <div class="field"><label>ADVENTURER NAME</label><input id="rg-name" required minlength="3" placeholder="Kaelith the Bold"></div>
+        <div class="field"><label>EMAIL</label><input type="email" id="rg-email" required placeholder="hero@nexaura.quest"></div>
+        <div class="field"><label>PASSWORD</label><input type="password" id="rg-pass" required minlength="4" placeholder="••••••••"></div>
+        <button class="btn btn-em" style="width:100%">Forge My Legend</button>
+      </form>
+      <div class="divider">or continue with</div>
+      <button class="btn btn-ghost" style="width:100%" onclick="googleLogin()"><span style="font-weight:900;background:conic-gradient(#4285f4,#ea4335,#fbbc05,#34a853,#4285f4);-webkit-background-clip:text;background-clip:text;color:transparent">G</span> Google Sign-In</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="guestLogin()">🕯️ Continue as Guest Wanderer</button>
+      <div class="authmsg" id="authmsg"></div>
+      <div style="text-align:center;margin-top:8px"><button style="color:var(--tx3);font-size:13px" onclick="show('scr-landing')">← Back to the gates</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHARACTER CREATION ============ -->
+<section id="scr-create" class="screen">
+  <div class="ccbox glass">
+    <span class="tag">The Mirror of Awakening</span>
+    <h2 style="font-size:30px;margin-top:8px">Shape Your Adventurer</h2>
+    <div class="ccprev" id="cc-prev">🧙‍♂️</div>
+    <div class="avgrid" id="cc-avs"></div>
+    <div class="field" style="max-width:340px;margin:0 auto 18px"><input id="cc-name" maxlength="18" placeholder="Your name in the kingdom"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="beginAdventure()">🌅 Awaken in the Kingdom</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="scr-app" class="screen">
+  <aside id="side">
+    <div class="logo"><div class="gem"></div><span>NEXAURA</span></div>
+    <button class="nav-it on" data-nav="dash" onclick="nav('dash')">🏰 <span class="tx">Dashboard</span></button>
+    <button class="nav-it" data-nav="worlds" onclick="nav('worlds')">🗺️ <span class="tx">Worlds</span></button>
+    <button class="nav-it" data-nav="inv" onclick="nav('inv')">🎒 <span class="tx">Inventory</span></button>
+    <button class="nav-it" data-nav="board" onclick="nav('board')">🏆 <span class="tx">Leaderboard</span></button>
+    <button class="nav-it" data-nav="stats" onclick="nav('stats')">📈 <span class="tx">Analytics</span></button>
+    <button class="nav-it" data-nav="profile" onclick="nav('profile')">👤 <span class="tx">Profile</span></button>
+    <button class="nav-it" data-nav="settings" onclick="nav('settings')">⚙️ <span class="tx">Settings</span></button>
+    <div class="spacer"></div>
+    <div class="pchip" id="side-prof"></div>
+    <button class="nav-it" style="margin-top:8px" onclick="logout()">🚪 <span class="tx">Logout</span></button>
+  </aside>
+  <div id="main">
+    <div id="tb">
+      <div class="ttl" id="tb-title">Dashboard</div>
+      <span class="coin">🪙 <b id="tb-coins">0</b></span>
+      <div class="tb-lv"><span class="chip" style="border-color:rgba(245,196,83,.4)">Lv <b id="tb-lv">1</b></span><div class="xpbar"><i id="tb-xp" style="width:0%"></i></div></div>
+    </div>
+    <div class="pane on" id="pane-dash"></div>
+    <div class="pane" id="pane-worlds"></div>
+    <div class="pane" id="pane-inv"></div>
+    <div class="pane" id="pane-board"></div>
+    <div class="pane" id="pane-stats"></div>
+    <div class="pane" id="pane-profile"></div>
+    <div class="pane" id="pane-settings"></div>
+  </div>
+</div>
+
+<!-- ============ GAME ============ -->
+<section id="scr-game" class="screen">
+  <canvas id="gcanvas" width="960" height="540"></canvas>
+  <div id="ghud">
+    <div class="gl">
+      <div class="hudchip"><span id="gh-av">🧙‍♂️</span><span id="gh-name">Hero</span><span class="chip" style="padding:2px 8px">Lv <b id="gh-lv">1</b></span><div class="xpbar"><i id="gh-xp" style="width:0%"></i></div></div>
+      <div class="hudchip">❤️ <div class="hpbar pl" style="width:130px"><i id="gh-hp" style="width:100%"></i></div><span id="gh-hpn"></span></div>
+      <div class="hudchip">🪙 <b id="gh-coins">0</b></div>
+    </div>
+    <div id="qtrack"></div>
+  </div>
+  <div id="dlgbox">
+    <div class="who"><span id="dlg-ic">🧙‍♂️</span><span id="dlg-who">Old Sage</span></div>
+    <div class="txt" id="dlg-txt"></div>
+    <div class="chs" id="dlg-chs"></div>
+    <div class="cont" id="dlg-cont">▼</div>
+  </div>
+  <div id="gworld-name">Tutorial Village</div>
+  <div id="tpad">
+    <span></span><button data-k="ArrowUp">▲</button><span></span>
+    <button data-k="ArrowLeft">◀</button><span></span><button data-k="ArrowRight">▶</button>
+    <span></span><button data-k="ArrowDown">▼</button><button data-k="e" style="background:rgba(245,196,83,.3)">E</button>
+  </div>
+  <button class="btn btn-ghost btn-sm" id="gbtn-exit" onclick="exitWorld()">⬅ Leave Realm</button>
+</section>
+
+<script>
+/* ================================================================
+   NEXAURA — The Algorithm Kingdom  ·  single-file MVP build
+   ================================================================ */
+"use strict";
+const $=id=>document.getElementById(id), R=(a,b)=>a+Math.random()*(b-a), RI=(a,b)=>Math.floor(R(a,b+1)), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- starfield ---------------- */
+(()=>{const c=$('stars'),x=c.getContext('2d');let W,H,ST=[];function rs(){W=c.width=innerWidth;H=c.height=innerHeight;ST=Array.from({length:130},()=>({x:R(0,W),y:R(0,H),r:R(.4,1.6),p:R(0,7),s:R(.05,.3)}));}rs();addEventListener('resize',rs);
+(function f(t){x.clearRect(0,0,W,H);for(const s of ST){const a=.25+.5*Math.abs(Math.sin(t*.001*s.s*6+s.p));x.fillStyle=`rgba(${s.r>1.2?'245,196,83':'180,200,255'},${a})`;x.fillRect(s.x,s.y,s.r,s.r);s.y-=s.s*.3;if(s.y<0)s.y=H;}
+if(!document.body.classList.contains('reduce'))requestAnimationFrame(f);else requestAnimationFrame(f);})(0);})();
+
+/* ---------------- audio ---------------- */
+let AC=null;const ac=()=>{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC};
+function tone(f,d=.12,type='square',v=.06,delay=0){if(!S.settings.sfx)return;try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,a.currentTime+delay);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+delay+d);o.connect(g).connect(a.destination);o.start(a.currentTime+delay);o.stop(a.currentTime+delay+d+.02);}catch(e){}}
+const SFX={click:()=>tone(520,.06,'triangle',.05),coin:()=>{tone(880,.08,'square',.05);tone(1320,.12,'square',.05,.07)},hit:()=>tone(160,.15,'sawtooth',.09),magic:()=>{tone(660,.1,'sine',.07);tone(990,.14,'sine',.06,.08)},win:()=>[523,659,784,1046].forEach((f,i)=>tone(f,.18,'triangle',.08,i*.11)),lose:()=>{tone(220,.25,'sawtooth',.07);tone(160,.35,'sawtooth',.07,.15)},lvl:()=>[392,523,659,784,1046,1318].forEach((f,i)=>tone(f,.22,'triangle',.09,i*.09)),step:()=>tone(90,.03,'triangle',.02),open:()=>tone(740,.1,'triangle',.06)};
+let musicOn=false,musicTimer=null;const SCALE=[261.6,293.7,329.6,392,440,523.3,587.3,659.3];
+function startMusic(){if(musicOn||!S.settings.music)return;musicOn=true;let i=0;const seq=[0,2,4,7,4,2,5,3];musicTimer=setInterval(()=>{if(!S.settings.music)return stopMusic();tone(SCALE[seq[i%8]]/2,.9,'sine',.022);tone(SCALE[seq[(i+3)%8]],.5,'triangle',.012,.12);i++;},460);}
+function stopMusic(){musicOn=false;clearInterval(musicTimer);}
+
+/* ---------------- data ---------------- */
+const WORLDS=[
+ {id:'village',name:'Tutorial Village',icon:'🏡',diff:'Tutorial',boss:'Training Golem (peaceful)',rewards:'Rusty Sword · 150 XP',grad:['#1d4a2e','#2dd4a7'],desc:'A quiet haven where the Old Sage teaches adventurers how the kingdom works. No monsters roam here — only wisdom.',entry:true},
+ {id:'arrays',name:'Forest of Arrays',icon:'🌲',diff:'Easy ★',boss:'Duplicate Colossus',rewards:'Emerald Blade · Grove Badge',grad:['#0c3b2e','#10b981'],desc:'Ancient trees grow in ordered rows. Three corrupted Runestones feed the Duplicate Colossus that lairs beyond the eastern gate.',entry:false},
+ {id:'strings',name:'Valley of Strings',icon:'🏜️',diff:'Easy ★★',boss:'Palindrome Wraith',rewards:'Rune Whisperer Title · Vale Badge',grad:['#3b2a5e','#a78bfa'],desc:'Echoing canyons where words hang in the air like vines. The Palindrome Wraith twists every phrase it touches.',entry:false},
+ {id:'linked',name:'River of Linked Lists',icon:'🌊',diff:'Medium ★★',boss:'Cycle Serpent',rewards:'Chapter II',grad:['#0c2f4a','#60a5fa'],desc:'A river whose waters flow node by node. Legend says a serpent loops forever near the delta.'},
+ {id:'stacks',name:'Stack Volcano',icon:'🌋',diff:'Medium ★★★',boss:'Overflow Inferno',rewards:'Chapter II',grad:['#4a1508','#f97316'],desc:'Molten rock pushed upward, last in, first out. The Inferno erupts when the magma exceeds its bounds.'},
+ {id:'trees',name:'Tree Kingdom',icon:'🌳',diff:'Hard ★★★',boss:'Unbalanced Titan',rewards:'Chapter II',grad:['#123d12','#84cc16'],desc:'A kingdom grown in branches and heights, leaning dangerously since the Titan lost its balance.'},
+ {id:'graphs',name:'Graph Desert',icon:'🐪',diff:'Hard ★★★★',boss:'Cyclic Djinn',rewards:'Chapter II',grad:['#4a3a08','#eab308'],desc:'Dunes connected by ancient roads. Travelers who ignore the shortest path wander forever.'},
+ {id:'castle',name:'Algorithm Castle',icon:'🏯',diff:'Expert ★★★★★',boss:'THE NULL KING',rewards:'The Kingdom Itself',grad:['#1e1b4b','#f5c453'],desc:'The heart of the corruption. The Null King waits on a throne of dereferenced pointers.'}];
+
+const PROBLEMS={
+ 'echo':{title:'Echo of Beginnings',fn:'add',topic:'Basics',xp:60,coins:20,diff:'★',
+  stmt:'The Runestone hums softly.<br><br><b>Write a function <code>add(a, b)</code> that returns the sum of two integers.</b><br><br>This is the first spark of every algorithm: take input, transform, return.',
+  starter:{javascript:'function add(a, b) {\n  // return the sum\n}\n',python:'def add(a, b):\n    # return the sum\n    pass\n',java:'int add(int a, int b) {\n    // return the sum\n}\n',cpp:'int add(int a, int b) {\n    // return the sum\n}\n'},
+  tests:[{in:[2,3],out:5},{in:[-1,1],out:0}],hidden:[{in:[100,234],out:334},{in:[-5,-7],out:-12},{in:[0,0],out:0},{in:[999,1],out:1000}],
+  hints:['Every expression in this kingdom evaluates to something. The <code>+</code> operator is your first rune.','Combine the two arguments and <b>return</b> the result in a single line.','Full blueprint: <code>return a + b;</code>'],
+  expl:'Addition is O(1) — constant time. Every great algorithm begins with a single honest computation. The Runestone accepted your spark; the forest gate now stirs.',cx:'O(1) time · O(1) space'},
+ 'grove-sum':{title:'The Grove of Two Sums',fn:'twoSum',topic:'Arrays',xp:120,coins:40,diff:'★',
+  stmt:'The Runestone is wrapped in twin vines.<br><br><b>Given an array of integers <code>nums</code> and an integer <code>target</code>, write <code>twoSum(nums, target)</code> that returns the indices of the two numbers that add up to <code>target</code>.</b><br><br>Return them as an array <code>[i, j]</code> in any order. Exactly one solution exists, and you may not use the same element twice.',
+  starter:{javascript:'function twoSum(nums, target) {\n  // find two indices whose values sum to target\n}\n',python:'def twoSum(nums, target):\n    # find two indices whose values sum to target\n    pass\n',java:'int[] twoSum(int[] nums, int target) {\n    // find two indices whose values sum to target\n}\n',cpp:'vector<int> twoSum(vector<int>& nums, int target) {\n    // find two indices whose values sum to target\n}\n'},
+  tests:[{in:[[2,7,11,15],9],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'[0,1] (any order)'},{in:[[3,2,4],6],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'[1,2]'}],
+  hidden:[{in:[[3,3],6],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'[0,1]'},{in:[[-3,4,3,90],0],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'[0,2]'},{in:[[1,5,8,12,3],15],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'[2,4]'}],
+  hints:['Try checking <b>every pair</b> first: two nested loops over indices i &lt; j. That is O(n²) — fine to begin with.','For each number x, its partner is <code>target - x</code>. If you could look up a number\u2019s index instantly… what structure does that?','Blueprint: walk the array once; keep a map of <code>value → index</code> of everything seen; for each x check if <code>target - x</code> is already in the map. O(n).'],
+  expl:'Two Sum is the gateway to hash-based thinking. Brute force is O(n²); the hash-map pass is O(n) time, O(n) space — you traded memory for speed. The Colossus roars: one seal broken.',cx:'O(n) time · O(n) space (optimal)'},
+ 'mirror-path':{title:'The Mirror Path',fn:'reverseArray',topic:'Arrays',xp:100,coins:35,diff:'★',
+  stmt:'A river reflects the forest backwards.<br><br><b>Write <code>reverseArray(arr)</code> that returns a new array with the elements of <code>arr</code> in reverse order.</b><br><br>Bonus honor: think about how you would do it with two pointers.',
+  starter:{javascript:'function reverseArray(arr) {\n  // return the reversed array\n}\n',python:'def reverseArray(arr):\n    # return the reversed array\n    pass\n',java:'int[] reverseArray(int[] arr) {\n    // return the reversed array\n}\n',cpp:'vector<int> reverseArray(vector<int>& arr) {\n    // return the reversed array\n}\n'},
+  tests:[{in:[[1,2,3]],out:[3,2,1]},{in:[['a']],out:['a']}],hidden:[{in:[[5,4,3,2,1]],out:[1,2,3,4,5]},{in:[[]],out:[]},{in:[[7,7,9]],out:[9,7,7]}],
+  hints:['Element at index i belongs at index <code>length - 1 - i</code>.','Two pointers: one at the start, one at the end. Swap, then step inward until they meet.','Blueprint: build a new array by iterating from last index to first — or swap in place with lo/hi pointers.'],
+  expl:'Reversal teaches the <b>two-pointer</b> pattern: do symmetric work from both ends in a single O(n) pass. It returns in palindromes, partitioning, and linked-list surgery.',cx:'O(n) time · O(1) extra (in-place)'},
+ 'peak-shrine':{title:'The Peak Shrine',fn:'findPeak',topic:'Arrays',xp:140,coins:50,diff:'★★',
+  stmt:'Wind howls around a mountain shrine.<br><br><b>Write <code>findPeak(arr)</code> that returns the INDEX of any peak element.</b><br><br>A peak is strictly greater than its neighbors. For edges, imagine the outside is −∞, so <code>arr[0]</code> only needs to beat <code>arr[1]</code>. Multiple peaks exist — any one is accepted by the shrine.',
+  starter:{javascript:'function findPeak(arr) {\n  // return the index of any peak\n}\n',python:'def findPeak(arr):\n    # return the index of any peak\n    pass\n',java:'int findPeak(int[] arr) {\n    // return the index of any peak\n}\n',cpp:'int findPeak(vector<int>& arr) {\n    // return the index of any peak\n}\n'},
+  tests:[{in:[[1,2,3,1]],v:'(g,a)=>{var r=a[0],i=g;return Number.isInteger(i)&&i>=0&&i<r.length&&(i===0||r[i]>r[i-1])&&(i===r.length-1||r[i]>r[i+1]);}',out:'2'},{in:[[1]],v:'(g,a)=>{var r=a[0],i=g;return Number.isInteger(i)&&i>=0&&i<r.length&&(i===0||r[i]>r[i-1])&&(i===r.length-1||r[i]>r[i+1]);}',out:'0'}],
+  hidden:[{in:[[1,2,1,3,5,6,4]],v:'(g,a)=>{var r=a[0],i=g;return Number.isInteger(i)&&i>=0&&i<r.length&&(i===0||r[i]>r[i-1])&&(i===r.length-1||r[i]>r[i+1]);}',out:'1 or 5'},{in:[[5,4,3,2,1]],v:'(g,a)=>{var r=a[0],i=g;return Number.isInteger(i)&&i>=0&&i<r.length&&(i===0||r[i]>r[i-1])&&(i===r.length-1||r[i]>r[i+1]);}',out:'0'},{in:[[1,2,3,4,5]],v:'(g,a)=>{var r=a[0],i=g;return Number.isInteger(i)&&i>=0&&i<r.length&&(i===0||r[i]>r[i-1])&&(i===r.length-1||r[i]>r[i+1]);}',out:'4'}],
+  hints:['A linear scan works: check each element against its neighbors. O(n) — the shrine accepts it.','Climb toward the larger neighbor and you must eventually reach a peak.','Elite path — binary search O(log n): look at mid. If <code>arr[mid] &lt; arr[mid+1]</code>, a peak is guaranteed to the right; otherwise to the left.'],
+  expl:'Peak Element is binary search in disguise: the invariant is that <b>an ascending step always has a peak beyond it</b>. That insight converts O(n) into O(log n). The final seal shatters — the Colossus awaits.',cx:'O(log n) optimal · O(n) accepted'},
+ 'colossus-core':{title:'Heart of the Colossus',fn:'majorityElement',topic:'Arrays',xp:250,coins:100,diff:'★★',boss:true,
+  stmt:'⚔️ THE DUPLICATE COLOSSUS towers above you, forged from a thousand copied stones.<br><br><b>To unmake it, write <code>majorityElement(nums)</code>: return the element that appears MORE than ⌊n/2⌋ times.</b><br><br>The majority element always exists. The Colossus respects elegance: the Boyer–Moore vote is its true weakness.',
+  starter:{javascript:'function majorityElement(nums) {\n  // return the element appearing more than n/2 times\n}\n',python:'def majorityElement(nums):\n    # return the element appearing more than n/2 times\n    pass\n',java:'int majorityElement(int[] nums) {\n    // return the element appearing more than n/2 times\n}\n',cpp:'int majorityElement(vector<int>& nums) {\n    // return the element appearing more than n/2 times\n}\n'},
+  tests:[{in:[[3,2,3]],out:3},{in:[[2,2,1,1,1,2,2]],out:2}],hidden:[{in:[[1]],out:1},{in:[[6,5,6,6,6]],out:6},{in:[[-1,-1,2,-1]],out:-1},{in:[[1,2,1,2,1]],out:1}],
+  hints:['Counting each value in a map and checking &gt; n/2 is a clean O(n) win.','Boyer–Moore: keep a <code>candidate</code> and a <code>count</code>. If count is 0, adopt the current number. If current equals candidate, count++, else count--.','The majority can never be fully cancelled — the survivor at the end is the answer.'],
+  expl:'The Colossus crumbles: Boyer–Moore majority vote finds the dominant element in O(n) time and <b>O(1) space</b> — the votes of the many outlast the noise of the few. The Forest of Arrays is restored!',cx:'O(n) time · O(1) space (Boyer–Moore)'},
+ 'whisper':{title:'The Whispering Mirror',fn:'isPalindrome',topic:'Strings',xp:120,coins:40,diff:'★',
+  stmt:'Words float through the canyon, some of them… mirrored.<br><br><b>Write <code>isPalindrome(s)</code> that returns <code>true</code> if the string reads the same forwards and backwards.</b> Input contains only lowercase letters.',
+  starter:{javascript:'function isPalindrome(s) {\n  // true if s reads the same both ways\n}\n',python:'def isPalindrome(s):\n    # true if s reads the same both ways\n    pass\n',java:'boolean isPalindrome(String s) {\n    // true if s reads the same both ways\n}\n',cpp:'bool isPalindrome(string s) {\n    // true if s reads the same both ways\n}\n'},
+  tests:[{in:['racecar'],out:true},{in:['nexaura'],out:false}],hidden:[{in:['abba'],out:true},{in:['ab'],out:false},{in:['z'],out:true},{in:['abccba'],out:true}],
+  hints:['Compare the first char with the last, the second with the second-last…','Two pointers from both ends, walking inward. One mismatch = not a palindrome.','Blueprint: <code>for i from 0 to len/2: if s[i] !== s[n-1-i] return false</code>.'],
+  expl:'Palindrome checking is the two-pointer pattern\u2019s purest form: O(n) comparisons, early exit on mismatch. The Wraith\u2019s mirror magic is just this spell, reversed.',cx:'O(n) time · O(1) space'},
+ 'unique-glyph':{title:'The Lone Glyph',fn:'firstUnique',topic:'Strings',xp:150,coins:55,diff:'★★',
+  stmt:'Among a swarm of echoing letters, one glyph refuses to repeat.<br><br><b>Write <code>firstUnique(s)</code> that returns the FIRST character that appears exactly once, or <code>"-"</code> if every character repeats.</b>',
+  starter:{javascript:'function firstUnique(s) {\n  // first non-repeating char, or "-"\n}\n',python:'def firstUnique(s):\n    # first non-repeating char, or "-"\n    pass\n',java:'char firstUnique(String s) {\n    // first non-repeating char, or "-"\n}\n',cpp:'char firstUnique(string s) {\n    // first non-repeating char, or "-"\n}\n'},
+  tests:[{in:['nexaura'],out:'n'},{in:['aabb'],out:'-'}],hidden:[{in:['statistics'],out:'a'},{in:['zzz'],out:'-'},{in:['abca'],out:'b'},{in:['x'],out:'x'}],
+  hints:['You need to know the count of every character before you can judge order.','Pass 1: build a frequency map. Pass 2: scan left-to-right and return the first char with count 1.','Two passes, both O(n). Order matters, so the second pass must follow the original string.'],
+  expl:'Frequency counting + ordered scan. This two-pass rhythm (count, then query in order) appears everywhere: LRU caches, anagram grouping, stream dedup.',cx:'O(n) time · O(1) space (26 letters)'},
+ 'wraith-bane':{title:'Riddle of the Wraith',fn:'canBePalindrome',topic:'Strings',xp:220,coins:90,diff:'★★',boss:true,
+  stmt:'👻 THE PALINDROME WRAITH dissolves into scattered letters and hisses:<br><br><b>"Can these letters be REARRANGED into a palindrome? Answer <code>canBePalindrome(s)</code> truly, and I am undone."</b><br><br>Return <code>true</code> if some arrangement of <code>s</code> forms a palindrome.',
+  starter:{javascript:'function canBePalindrome(s) {\n  // can s be rearranged into a palindrome?\n}\n',python:'def canBePalindrome(s):\n    # can s be rearranged into a palindrome?\n    pass\n',java:'boolean canBePalindrome(String s) {\n    // can s be rearranged into a palindrome?\n}\n',cpp:'bool canBePalindrome(string s) {\n    // can s be rearranged into a palindrome?\n}\n'},
+  tests:[{in:['civic'],out:true},{in:['nexaura'],out:false}],hidden:[{in:['aabb'],out:true},{in:['abc'],out:false},{in:['aaabbbb'],out:true},{in:['xyxy'],out:true},{in:['z'],out:true}],
+  hints:['In any palindrome, characters pair up symmetrically. What does that imply about counts?','At most ONE character may have an odd frequency.','Count frequencies, tally how many are odd. Answer = (oddCount ≤ 1).'],
+  expl:'The Wraith\u2019s true weakness: a multiset forms a palindrome iff at most one element has odd multiplicity. One counting pass — O(n). The Valley of Strings breathes free.',cx:'O(n) time · O(1) space'}};
+
+const QUIZ=[
+ {q:'twoSum with a hash map runs in…',a:['O(n)','O(n²)','O(log n)','O(1)'],c:0},
+ {q:'Best case of linear search on a sorted-free array?',a:['O(1)','O(n)','O(n log n)','O(log n)'],c:0},
+ {q:'A stack processes elements…',a:['LIFO','FIFO','Randomly','By priority'],c:0},
+ {q:'Binary search requires the data to be…',a:['Sorted','Linked','Hashed','Balanced'],c:0},
+ {q:'Reversing an array with two pointers is…',a:['O(n)','O(n²)','O(log n)','O(n³)'],c:0},
+ {q:'Which structure maps keys to values?',a:['Hash map','Queue','Heap','Graph'],c:0},
+ {q:'Boyer–Moore majority vote uses extra space…',a:['O(1)','O(n)','O(log n)','O(n²)'],c:0},
+ {q:'A palindrome reads…',a:['Same both ways','Sorted','Ascending','Uniquely'],c:0}];
+
+const ITEMS={
+ rusty_sword:{name:'Rusty Sword',type:'weapon',dmg:5,rar:'common',icon:'🗡️',desc:'Given by the Old Sage. It has chopped wood, goblins of syntax, and one very stubborn jar.'},
+ emerald_blade:{name:'Emerald Blade',type:'weapon',dmg:14,rar:'epic',icon:'⚔️',desc:'Forged from the Colossus\u2019s shattered seals. Hums near duplicate values.'},
+ compiler_staff:{name:'Compiler Staff',type:'weapon',dmg:10,rar:'rare',icon:'🪄',desc:'Channel raw source through its core. Warnings hurt more than errors.'},
+ potion:{name:'Small Potion',type:'consumable',heal:35,rar:'common',icon:'🧪',desc:'Restores 35 HP. Tastes like green tea and merge conflicts.'},
+ shard:{name:'Mana Shard',type:'quest',rar:'rare',icon:'💠',desc:'A fragment of the village child\u2019s favorite toy. Collect all three.'},
+ relic_rune:{name:'Rune of O(n)',type:'relic',rar:'legend',icon:'🔮',desc:'Whispers of linear grace. Whoever holds it never fears the nested loop.'},
+ relic_locket:{name:'Sage\u2019s Locket',type:'relic',rar:'epic',icon:'📿',desc:'Inside: a portrait of the first algorithm ever written. Hello, World.'},
+ cloak_gold:{name:'Aurum Cloak',type:'skin',rar:'epic',icon:'🧥',desc:'Armor trimmed in kingdom gold. Recolors your adventurer.'},
+ cloak_pur:{name:'Amethyst Veil',type:'skin',rar:'epic',icon:'🥷',desc:'Woven from Valley mist. Recolors your adventurer.'},
+ badge_forest:{name:'Grove Badge',type:'badge',rar:'epic',icon:'🏅',desc:'Proof the Duplicate Colossus fell.'},
+ badge_vale:{name:'Vale Badge',type:'badge',rar:'epic',icon:'🎖️',desc:'Proof the Palindrome Wraith was un-riddled.'},
+ scroll_rev:{name:'Scroll of Reversal',type:'scroll',rar:'rare',icon:'📜',desc:'"Swap the ends; walk inward." — the two-pointer doctrine.'}};
+
+const ACHS={
+ first_echo:{n:'First Echo',i:'✨',d:'Solve your first Runestone'},
+ bug_squasher:{n:'Bug Squasher',i:'🐛',d:'Win your first battle'},
+ grove_guardian:{n:'Grove Guardian',i:'🌲',d:'Defeat the Duplicate Colossus'},
+ rune_whisperer:{n:'Rune Whisperer',i:'🔤',d:'Free the Valley of Strings'},
+ sharp_mind:{n:'Sharp Mind',i:'🧠',d:'Solve a trial without any hint'},
+ shardkeeper:{n:'Shardkeeper',i:'💠',d:'Return all 3 Mana Shards'},
+ level5:{n:'Ascendant',i:'🌟',d:'Reach Level 5'},
+ wealthy:{n:'Dragon Hoard',i:'🪙',d:'Hold 300+ coins'},
+ elite:{n:'Elite Trialist',i:'🔥',d:'Earn an Elite Trial bonus'}};
+const TITLES=['Novice Wanderer','Grove Guardian','Rune Whisperer','Logic Knight','Shardkeeper','Nullbane'];
+
+const SEED_BOARD=[['Kaelith',2840,7],['ByteReaver',2610,7],['Sylvara',2390,6],['NullPointer',2145,6],['Mira Chen',1980,5],['Orochi',1730,5],['Luna.dev',1544,4],['Recursion Rex',1290,3],['Tiny Turing',980,3],['Queue_Nine',640,2]];
+
+/* ---------------- pixel art ---------------- */
+const ART={
+ knight:['..HHHH..','.HHHHHH.','.HEHHEH.','.HHHHHH.','..AAAA..','.AAAAAA.','.A.AA.A.','..B..B..'],
+ slime:['..gggg..','.gggggg.','gg1gg1gg','gggggggg','.gggggg.'],
+ colossus:['..RRRRRR..','.RRRRRRRR.','RR1RRRR1RR','RRRRRRRRRR','RRrRRRRrRR','.RRRRRRRR.','.RR.RR.RR.','..R.RR.R..'],
+ villager:['...KK...','..KKKK..','..ffff..','..fefe..','..ffff..','.RRRRRR.','.RRRRRR.','..R..R..'],
+ chest:['owwwwo','wggggw','yyyyyy','wggggw','owwwwo'],
+ chestOpen:['......','.yyyy.','wggggw','wggggw','owwwwo'],
+ stone:['..SS..','.SSSS.','.S11S.','.SSSS.','.SSSS.','SSSSSS'],
+ shard:['...p...','..ppp..','.ppppp.','..ppp..','...p...'],
+ wraith:['..pppp..','.pppppp.','pp1pp1pp','pppppppp','.p.pp.p.','..p..p..']};
+function drawArt(ctx,art,pal,x,y,s,alpha=1){ctx.save();ctx.globalAlpha=alpha;for(let r=0;r<art.length;r++)for(let c=0;c<art[r].length;c++){const col=pal[art[r][c]];if(col){ctx.fillStyle=col;ctx.fillRect(x+c*s,y+r*s,s,s);}}ctx.restore();}
+const PALS={
+ knight:{H:'#9fb2c8','1':'#4df0ff',A:'#2dd4a7',B:'#4a3626'},
+ knight_gold:{H:'#9fb2c8','1':'#4df0ff',A:'#f5c453',B:'#4a3626'},
+ knight_pur:{H:'#9fb2c8','1':'#f0abfc',A:'#a78bfa',B:'#3b2a5e'},
+ slime:{g:'#4ade80','1':'#14532d'},
+ wraithling:{p:'#c4b5fd','1':'#4c1d95'},
+ colossus:{R:'#8a7663',r:'#ff8c42','1':'#ef4444'},
+ wraithboss:{R:'#a78bfa',r:'#f0abfc','1':'#fef08a'},
+ sage:{K:'#e5e7eb',f:'#f2c9a0',e:'#222',R:'#3b82f6'},
+ wizard:{K:'#7c3aed',f:'#f2c9a0',e:'#222',R:'#a78bfa'},
+ merchant:{K:'#b45309',f:'#f2c9a0',e:'#222',R:'#d97706'},
+ smith:{K:'#374151',f:'#e0a878',e:'#222',R:'#6b7280'},
+ kid:{K:'#fbbf24',f:'#f2c9a0',e:'#222',R:'#34d399'},
+ herald:{K:'#f5c453',f:'#f2c9a0',e:'#222',R:'#7c3aed'},
+ chest:{o:'#5b3a1e',w:'#8a5a33',g:'#3a2413',y:'#f5c453'},
+ stone:{S:'#6b7a8f','1':'#94a3b8'},
+ stoneLit:{S:'#5d7a6e','1':'#34d399'},
+ shard:{p:'#c084fc'}};
+
+/* ---------------- state ---------------- */
+const DEFAULT_STATE=()=>({v:1,user:{name:'Wanderer',avatar:'🧙‍♂️',title:'Novice Wanderer',email:''},xp:0,coins:50,hp:100,
+ worlds:{village:{unlocked:true,stones:[],chests:[],shards:[],bossDown:false},arrays:{unlocked:false,stones:[],chests:[],shards:[],bossDown:false},strings:{unlocked:false,stones:[],chests:[],shards:[],bossDown:false}},
+ problems:{},inventory:{potion:1},equip:{weapon:null},skins:['emerald'],skin:'emerald',
+ quests:{},ach:[],streak:0,forgeHone:0,daily:{date:'',pid:''},week:{k:'',xp:0},
+ stats:{attempts:0,correct:0,byTopic:{},times:[]},code:{},settings:{music:true,sfx:true,notif:true,reduce:false,bigtext:false,accent:'emerald',geminiKey:''}});
+let S=null,SESSION=null;
+const skey=()=>'nex_save_'+(SESSION||'guest');
+function save(){try{localStorage.setItem(skey(),JSON.stringify(S));}catch(e){}}
+function loadSave(){try{const r=localStorage.getItem(skey());if(r){S=Object.assign(DEFAULT_STATE(),JSON.parse(r));return true}}catch(e){}return false}
+function users(){try{return JSON.parse(localStorage.getItem('nex_users')||'{}')}catch(e){return{}}}
+
+/* progression */
+function xpNeed(lv){return Math.round(100*Math.pow(lv,1.4))}
+function levelOf(xp){let l=1,need=xpNeed(1);while(xp>=need){xp-=need;l++;need=xpNeed(l);}return{l,cur:xp,need}}
+function hpMax(){return 90+levelOf(S.xp).l*10}
+function weaponDmg(){const w=S.equip.weapon;return (w?ITEMS[w].dmg:0)+S.forgeHone*3}
+function gainXP(n,silent){const before=levelOf(S.xp).l;S.xp+=n;const wk=weekKey();if(S.week.k!==wk)S.week={k:wk,xp:0};S.week.xp+=n;const after=levelOf(S.xp).l;
+ if(!silent)toast(`+${n} XP`,'Experience flows into you','em');
+ if(after>before){SFX.lvl();const d=document.createElement('div');d.className='lvup';d.innerHTML='<span>LEVEL '+after+'</span>';document.body.appendChild(d);setTimeout(()=>d.remove(),2100);confetti();if(after>=5)unlockAch('level5');}
+ updHUD();save();}
+function gainCoins(n){S.coins+=n;if(S.coins>=300)unlockAch('wealthy');updHUD();save();}
+function weekKey(){const d=new Date();return d.getFullYear()+'-W'+Math.floor(((d-new Date(d.getFullYear(),0,1))/864e5)/7)}
+function addItem(id,q=1){S.inventory[id]=(S.inventory[id]||0)+q;save();}
+function hasItem(id){return (S.inventory[id]||0)>0}
+function useItem(id){if(S.inventory[id]){S.inventory[id]--;if(!S.inventory[id])delete S.inventory[id];save();return true}return false}
+function unlockAch(id){if(!ACHS[id]||S.ach.includes(id))return;S.ach.push(id);save();toast(ACHS[id].i+' Achievement Unlocked',ACHS[id].n+' — '+ACHS[id].d,'gold');SFX.win();}
+
+/* toasts */
+function toast(title,body,cls=''){if(!S||!S.settings.notif)return;const t=document.createElement('div');t.className='toast '+cls;t.innerHTML=`<b>${title}</b>${body?esc(body):''}`;$('toasts').appendChild(t);setTimeout(()=>{t.style.opacity=0;t.style.transition='.4s';setTimeout(()=>t.remove(),400)},3800);}
+function confetti(){if(document.body.classList.contains('reduce'))return;const cols=['#f5c453','#34d399','#a78bfa','#60a5fa','#f87171'];for(let i=0;i<60;i++){const p=document.createElement('div');p.className='confp';p.style.cssText=`left:${R(0,100)}vw;background:${cols[RI(0,4)]};animation-duration:${R(1.6,3)}s;animation-delay:${R(0,.4)}s`;document.body.appendChild(p);setTimeout(()=>p.remove(),3600);}}
+
+/* ---------------- quests ---------------- */
+const QUESTS={
+ q_first:{name:'The First Echo',steps:[['talk_sage','Speak with the Old Sage'],['solve_echo','Solve the Runestone of Beginnings'],['return_sage','Return to the Old Sage']],rew:{xp:80,coins:30,items:['rusty_sword']}},
+ q_grove:{name:'Seals of the Grove',steps:[['st1','Restore the Northern Runestone'],['st2','Restore the Eastern Runestone'],['st3','Restore the Southern Runestone'],['boss_arrays','Defeat the Duplicate Colossus']],rew:{xp:400,coins:120,items:['emerald_blade','badge_forest']}},
+ q_strings:{name:'Echoes of the Vale',steps:[['sts1','Solve the Whispering Mirror'],['sts2','Solve the Lone Glyph'],['boss_strings','Unravel the Palindrome Wraith']],rew:{xp:350,coins:100,items:['badge_vale']}},
+ q_shards:{name:'The Scattered Shards',steps:[['shard_1','Recover a Mana Shard (1/3)'],['shard_2','Recover a Mana Shard (2/3)'],['shard_3','Recover a Mana Shard (3/3)']],rew:{xp:150,coins:60,items:['relic_rune']}}};
+function qState(id){return S.quests[id]||(S.quests[id]={active:false,done:{},complete:false})}
+function activateQuest(id){const q=qState(id);if(!q.active){q.active=true;save();toast('📜 New Quest',QUESTS[id].name,'pur');updQTrack();}}
+function qStep(id,step){const q=qState(id),Q=QUESTS[id];if(!q.active||q.done[step]||q.complete)return;q.done[step]=1;save();
+ const st=Q.steps.find(s=>s[0]===step);if(st)toast('✔ Objective complete',st[1],'em');SFX.coin();
+ if(Q.steps.every(s=>q.done[s[0]])){q.complete=true;const r=Q.rew;gainXP(r.xp,true);gainCoins(r.coins);(r.items||[]).forEach(addItem);
+  toast('🏆 Quest Complete!',Q.name+` — +${r.xp} XP, +${r.coins} 🪙`,'gold');confetti();
+  if(id==='q_first')unlockAch('first_echo'); if(id==='q_shards')unlockAch('shardkeeper');}
+ updQTrack();}
+function nextObjective(){for(const id of['q_first','q_grove','q_strings','q_shards']){const q=S.quests[id];if(q&&q.active&&!q.complete){const s=QUESTS[id].steps.find(s=>!q.done[s[0]]);if(s)return{q:QUESTS[id].name,s:s[1]}}}return null}
+function updQTrack(){const el=$('qtrack');if(!el)return;const o=nextObjective();el.innerHTML=o?`<b>📜 ${esc(o.q)}</b>${esc(o.s)}`:'<b>📜 Quests</b><span style="color:var(--tx3)">All current quests complete. Explore!</span>';const gh=$('gh-coins');if(gh)updHUD();}
+
+/* ---------------- judge (worker) ---------------- */
+function workerMain(){
+ function deepEq(a,b){if(a===b)return true;if(Array.isArray(a)&&Array.isArray(b)){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(!deepEq(a[i],b[i]))return false;return true;}
+  if(a&&b&&typeof a==='object'&&typeof b==='object'){var ka=Object.keys(a),kb=Object.keys(b);if(ka.length!==kb.length)return false;for(var j=0;j<ka.length;j++)if(!deepEq(a[ka[j]],b[ka[j]]))return false;return true;}return false;}
+ function fmt(v){try{var s=JSON.stringify(v);return s===undefined?String(v):s}catch(e){return String(v)}}
+ self.onmessage=function(e){var d=e.data,res=[],logs=[];
+  var cons={log:function(){logs.push([].map.call(arguments,fmt).join(' '))}};
+  try{
+   var f=new Function('console',d.code+'\n;return typeof '+d.fn+'==="function"?'+d.fn+':null;')(cons);
+   if(typeof f!=='function')throw new Error('Function "'+d.fn+'" not found. Keep the required name exactly.');
+   d.tests.forEach(function(t){try{
+     var args=JSON.parse(JSON.stringify(t.in));var got=f.apply(null,args);var ok;
+     if(t.v){ok=new Function('got','args','return ('+t.v+')(got,args);')(got,args);}else ok=deepEq(got,t.out);
+     res.push({ok:!!ok,got:fmt(got),expected:t.out===undefined?'(validated)':fmt(t.out)});
+    }catch(err){res.push({ok:false,error:String(err&&err.message||err)});}});
+   self.postMessage({ok:true,res:res,logs:logs});
+  }catch(err){self.postMessage({ok:false,error:String(err&&err.message||err),logs:logs});}};
+}
+let judgeWorker=null;
+function getJudge(){if(!judgeWorker){judgeWorker=new Worker(URL.createObjectURL(new Blob(['('+workerMain.toString()+')()'],{type:'text/javascript'})));}return judgeWorker}
+function judgeCode(code,fn,tests,timeout){timeout=timeout||4000;return new Promise(res=>{let w;try{w=getJudge()}catch(e){return res({ok:false,error:'Judge failed to start: '+e.message})}
+ const to=setTimeout(()=>{try{w.terminate()}catch(e){};judgeWorker=null;res({ok:false,error:'⏳ Time limit exceeded — check for infinite loops.',timeout:true,logs:[]})},timeout);
+ w.onmessage=e=>{clearTimeout(to);res(e.data)};w.onerror=e=>{clearTimeout(to);res({ok:false,error:'Runtime error: '+e.message,logs:[]})};
+ w.postMessage({code,fn,tests});});}
+
+/* ---------------- AI Oracle ---------------- */
+async function geminiAsk(prompt){const k=S.settings.geminiKey;if(!k)return null;try{
+ const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+encodeURIComponent(k),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+ const j=await r.json();return (j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0].text)||null;}catch(e){return null}}
+function localOracle(intent,pid,lastRes){const P=PROBLEMS[pid];if(!P)return 'The mist is silent. (Unknown trial)';
+ if(intent==='hint'){const st=S.problems[pid]||{hints:0};const h=P.hints[Math.min(st.hints||0,P.hints.length-1)];return h}
+ if(intent==='optimize'){return P.expl+' <br><b>Complexity:</b> '+P.cx}
+ if(intent==='explain'){return '<b>'+P.title+':</b> '+P.expl+' <br><b>Complexity:</b> '+P.cx}
+ if(intent==='why'){if(!lastRes)return 'Run or submit first, and I shall read the ashes.';
+  if(lastRes.timeout)return '⏳ Your code never returned. Look for loops whose counter never advances, or recursion without a base case. The Colossus feeds on infinite loops.';
+  if(lastRes.error)return '🧨 <b>Runtime fault:</b> '+esc(lastRes.error)+'. Check the function name, argument order, and that every path returns a value.';
+  const fails=(lastRes.res||[]).filter(r=>!r.ok);
+  if((pid==='grove-sum')&&fails.length)return '🔍 Forensics: duplicate values and negatives survived your logic. If you use nested loops, they may pass visible tests yet the hidden edge cases probe harder — a hash map of <code>value → index</code> handles all of these in one pass.';
+  if(fails.some(f=>f.error))return '🧨 A test threw: <i>'+esc(fails[0].error)+'</i>. Guard against empty input and missing returns.';
+  return '🔍 '+fails.length+' test(s) diverged. Compare <b>expected vs your output</b> above the console. Off-by-one? Wrong type? Remember the edge cases: empty input, single element, duplicates.';}
+ if(intent==='forge'){return '__FORGE__'}
+ return 'Ask me for a <b>hint</b>, <b>why</b> you failed, an <b>optimization</b>, or to <b>forge practice</b>.';}
+function forgePractice(base){const nums=new Set();while(nums.size<6)nums.add(RI(-20,40));const arr=[...nums];const i=RI(0,5),j=RI(i+1,arr.length-1);const target=arr[i]+arr[j];
+ return{title:'Forged Trial: Twin Sums of '+target,fn:'twoSum',topic:'Arrays',xp:40,coins:15,diff:'★',forged:true,
+  stmt:'<b>The Oracle forged a fresh trial.</b><br><br>Write <code>twoSum(nums, target)</code> returning the indices of two numbers summing to <code>target</code>. This variant was generated with fresh data — the forge never repeats.',
+  starter:PROBLEMS['grove-sum'].starter,
+  tests:[{in:[arr,target],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'(any valid pair)'}],
+  hidden:[{in:[arr,target],v:'(g,a)=>Array.isArray(g)&&g.length===2&&g[0]!==g[1]&&a[0][g[0]]+a[0][g[1]]===a[1]',out:'(hidden re-check)'}],
+  hints:PROBLEMS['grove-sum'].hints,expl:'A generated variant of Two Sum. The pattern transfers: complements + hash map.',cx:'O(n) time'}}
+
+/* ---------------- screens / auth ---------------- */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');if(id!=='scr-game'){stopGame();}}
+function showAuth(mode){show('scr-auth');authTab(mode);SFX.click();}
+function authTab(m){$('f-login').classList.toggle('hide',m!=='login');$('f-register').classList.toggle('hide',m!=='register');$('tab-login').classList.toggle('on',m==='login');$('tab-register').classList.toggle('on',m==='register');}
+function authMsg(t,bad){const m=$('authmsg');m.innerHTML=t;m.style.color=bad?'var(--red)':'var(--em)';if(bad)$('authform').classList.add('shake'),setTimeout(()=>$('authform').classList.remove('shake'),450);}
+function doLogin(e){e.preventDefault();const em=$('li-email').value.trim().toLowerCase(),pw=$('li-pass').value;const u=users()[em];
+ if(!u||u.pass!==pw)return authMsg('The gate rejects you — wrong email or password.',true),false;
+ SESSION=em;localStorage.setItem('nex_session',em);afterAuth(u.name);return false;}
+function doRegister(e){e.preventDefault();const name=$('rg-name').value.trim(),em=$('rg-email').value.trim().toLowerCase(),pw=$('rg-pass').value;
+ const U=users();if(U[em])return authMsg('That soul is already registered. Try logging in.',true),false;
+ U[em]={name,pass:pw};localStorage.setItem('nex_users',JSON.stringify(U));SESSION=em;localStorage.setItem('nex_session',em);
+ authMsg('Legend forged! Now shape your adventurer…');setTimeout(()=>openCreate(name),400);return false;}
+function doForgot(){const em=$('li-email')?$('li-email').value.trim():'';authMsg(em?'📧 Reset scroll sent to '+em+' (demo — no real email).':'Enter your email above first, then click again.');}
+function googleLogin(){const em='guardian@gmail.demo';const U=users();if(!U[em])U[em]={name:'Google Guardian',pass:'oauth'};localStorage.setItem('nex_users',JSON.stringify(U));SESSION=em;localStorage.setItem('nex_session',em);afterAuth(U[em].name);}
+function guestLogin(){SESSION='guest';localStorage.setItem('nex_session','guest');afterAuth('Wanderer');}
+function afterAuth(name){if(loadSave()){enterApp();}else openCreate(name||'Wanderer');}
+let ccAvatar='🧙‍♂️';
+function openCreate(name){show('scr-create');$('cc-name').value=name||'';const avs=['🧙‍♂️','🧝‍♀️','🥷','🦸','🧚','🤺'];$('cc-avs').innerHTML=avs.map(a=>`<button class="${a===ccAvatar?'on':''}" onclick="ccPick(this,'${a}')">${a}</button>`).join('');$('cc-prev').textContent=ccAvatar;}
+function ccPick(btn,a){ccAvatar=a;$('cc-prev').textContent=a;document.querySelectorAll('#cc-avs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');SFX.click();}
+function beginAdventure(){const name=($('cc-name').value.trim()||'Wanderer');S=DEFAULT_STATE();S.user.name=name;S.user.avatar=ccAvatar;S.user.email=SESSION==='guest'?'guest':SESSION;save();enterApp();
+ setTimeout(()=>toast('🌅 Welcome to Nexaura','Find the Old Sage in the village square. Use WASD / arrows to walk, E to interact.','gold'),600);}
+function logout(){localStorage.removeItem('nex_session');SESSION=null;S=null;stopMusic();show('scr-landing');}
+
+/* ---------------- app shell ---------------- */
+function enterApp(){applySettings();show('scr-app');nav('dash');startMusic();updHUD();}
+function applySettings(){document.body.classList.toggle('reduce',S.settings.reduce);document.body.classList.toggle('bigtext',S.settings.bigtext);document.body.className=document.body.className.replace(/acc-\w+/g,'').trim();document.body.classList.add('acc-'+S.settings.accent);}
+function nav(p,ttl){document.querySelectorAll('.nav-it').forEach(b=>b.classList.toggle('on',b.dataset.nav===p));document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));$('pane-'+p).classList.add('on');
+ $('tb-title').textContent=ttl||({dash:'Dashboard',worlds:'Worlds of Nexaura',inv:'Inventory',board:'Leaderboard',stats:'Analytics',profile:'Profile',settings:'Settings'}[p]);
+ ({dash:renderDash,worlds:renderWorlds,inv:renderInv,board:renderBoard,stats:renderStats,profile:renderProfile,settings:renderSettings})[p]();SFX.click();}
+function updHUD(){if(!S)return;const L=levelOf(S.xp);$('tb-coins').textContent=S.coins;$('tb-lv').textContent=L.l;$('tb-xp').style.width=(100*L.cur/L.need)+'%';
+ const sp=$('side-prof');if(sp)sp.innerHTML=`<div class="av">${S.user.avatar}</div><div class="pi"><b>${esc(S.user.name)}</b><span>${esc(S.user.title)}</span></div>`;
+ if($('scr-game').classList.contains('on')){$('gh-av').textContent=S.user.avatar;$('gh-name').textContent=S.user.name;$('gh-lv').textContent=L.l;$('gh-xp').style.width=(100*L.cur/L.need)+'%';$('gh-coins').textContent=S.coins;$('gh-hp').style.width=(100*clamp(S.hp,0,hpMax())/hpMax())+'%';$('gh-hpn').textContent=clamp(S.hp,0,hpMax())+'/'+hpMax();updQTrack();}}
+
+/* ---------------- dashboard ---------------- */
+function dailyProblem(){const d=new Date().toDateString();if(S.daily.date!==d){const pool=['grove-sum','mirror-path','peak-shrine','whisper','unique-glyph'];let h=0;for(const c of d)h=(h*31+c.charCodeAt(0))>>>0;S.daily={date:d,pid:pool[h%pool.length]};save();}return S.daily.pid}
+function worldCompletion(w){if(w==='village'){const q=S.quests.q_first;return q&&q.complete?100:(q?Math.round(100*Object.keys(q.done).length/3):0)}
+ const ws=S.worlds[w];if(!ws)return 0;const P=Object.values(PROBLEMS);let total=0,done=0;
+ for(const id in PROBLEMS){const pr=PROBLEMS[id];if(pr.world===w||(w==='arrays'&&['grove-sum','mirror-path','peak-shrine','colossus-core'].includes(id))||(w==='strings'&&['whisper','unique-glyph','wraith-bane'].includes(id))){total++;if(S.problems[id]&&S.problems[id].solved)done++;}}
+ return total?Math.round(100*done/total):0}
+function renderDash(){const L=levelOf(S.xp);const dp=dailyProblem();const solved=Object.values(S.problems).filter(p=>p.solved).length;
+ const cont=(()=>{for(const w of WORLDS){if(S.worlds[w.id]&&S.worlds[w.id].unlocked&&worldCompletion(w.id)<100)return w}return WORLDS[0]})();
+ $('pane-dash').innerHTML=`
+ <div class="dash">
+  <div>
+   <div class="glass dcard dhero">
+    <div class="dav">${S.user.avatar}</div>
+    <div style="flex:1;min-width:220px">
+      <span class="tag">Adventurer</span>
+      <h2 style="font-size:26px">${esc(S.user.name)}</h2>
+      <div style="color:var(--gold);font-size:13px;font-weight:700;margin-bottom:10px">“${esc(S.user.title)}” · Level ${L.l}</div>
+      <div class="xpbar" style="height:12px"><i style="width:${100*L.cur/L.need}%"></i></div>
+      <div style="font-size:12px;color:var(--tx3);margin-top:6px">${L.cur} / ${L.need} XP to Level ${L.l+1}</div>
+    </div>
+    <button class="btn btn-gold" onclick="enterWorld('${cont.id}')">▶ Continue Adventure</button>
+   </div>
+   <div class="statrow">
+    <div class="stat"><b>${Solved()}</b><span>Trials Solved</span></div>
+    <div class="stat"><b>${acc()}%</b><span>Accuracy</span></div>
+    <div class="stat"><b>${S.coins}</b><span>Coins</span></div>
+    <div class="stat"><b>${S.ach.length}/${Object.keys(ACHS).length}</b><span>Achievements</span></div>
+   </div>
+   <div class="glass dcard" style="margin-top:20px">
+     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div><span class="tag">⚡ Daily Challenge</span><h3 style="margin-top:4px">${PROBLEMS[dp].title}</h3><p style="color:var(--tx2);font-size:13px">Double XP today · ${PROBLEMS[dp].topic} · ${PROBLEMS[dp].diff}</p></div>
+      <button class="btn btn-em btn-sm" onclick="openCoding('${dp}',{daily:true})">${S.problems[dp]&&S.problems[dp].solvedToday?'✔ Solved':'Attempt'}</button>
+     </div>
+   </div>
+   <div class="glass dcard" style="margin-top:20px"><span class="tag">Quest Log</span><div style="margin-top:12px">${questRows()}</div></div>
+  </div>
+  <div>
+   <div class="glass dcard"><span class="tag">Realm Progress</span><div style="margin-top:14px">${WORLDS.slice(0,4).map(w=>{const un=S.worlds[w.id]&&S.worlds[w.id].unlocked;const c=worldCompletion(w.id);return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${w.icon} ${w.name} ${un?'':'🔒'}</span><span style="color:var(--tx3)">${c}%</span></div><div class="bar"><i style="width:${c}%;background:linear-gradient(90deg,var(--em2),var(--em))"></i></div></div>`}).join('')}</div></div>
+   <div class="glass dcard" style="margin-top:20px"><span class="tag">Achievements</span><div class="achstrip" style="margin-top:14px">${Object.entries(ACHS).map(([id,a])=>`<div class="achb ${S.ach.includes(id)?'':'off'}" title="${a.n} — ${a.d}">${a.i}</div>`).join('')}</div></div>
+   <div class="glass dcard" style="margin-top:20px"><span class="tag">The Oracle Speaks</span><p style="color:var(--tx2);font-size:13.5px;line-height:1.7;margin-top:10px">${oracleDaily()}</p></div>
+  </div>
+ </div>`;}
+function Solved(){return Object.values(S.problems).filter(p=>p.solved).length}
+function acc(){return S.stats.attempts?Math.round(100*S.stats.correct/S.stats.attempts):100}
+function questRows(){const rows=[];for(const id in QUESTS){const q=S.quests[id];if(q&&q.active){const done=QUESTS[id].steps.filter(s=>q.done[s[0]]).length;rows.push(`<div class="qrow ${q.complete?'done':''}"><span>📜 ${QUESTS[id].name}</span><span style="color:var(--tx3)">${done}/${QUESTS[id].steps.length}</span></div>`)}}
+ return rows.length?rows.join(''):'<div style="color:var(--tx3);font-size:13.5px">No active quests. Enter a realm and speak with its people.</div>'}
+function oracleDaily(){const weak=Object.entries(S.stats.byTopic).filter(([t,v])=>v.a>=2&&v.c/v.a<.6);if(weak.length)return `“I sense turbulence in <b>${weak[0][0]}</b>. Return to its runestones — repetition with reflection is mastery\u2019s forge.”`;if(Solved()===0)return '“Your story is unwritten. The Old Sage waits in the Tutorial Village — press ▶ Continue Adventure.”';return '“Your logic burns bright. Press onward — the next realm\u2019s seals will not break themselves.”'}
+
+/* ---------------- worlds page ---------------- */
+function renderWorlds(){$('pane-worlds').innerHTML=`<div class="wgrid">${WORLDS.map(w=>{const ws=S.worlds[w.id];const un=ws&&ws.unlocked;const c=worldCompletion(w.id);
+ return `<div class="glass wbig" onclick="${un?`enterWorld('${w.id}')`:`lockedWorld('${w.id}')`}">
+  <div class="ban" style="background:linear-gradient(140deg,${w.grad[0]},${w.grad[1]}55)">${w.icon}</div>
+  <div class="bd"><div style="display:flex;justify-content:space-between"><h3>${w.name}</h3><span class="chip">${w.diff}</span></div>
+  <p class="ds">${w.desc||'Sealed beyond the mists of Chapter II.'}</p>
+  <div class="infs"><span>👹 ${w.boss}</span><span>🎁 ${w.rewards||'???'}</span></div>
+  <div class="bar"><i style="width:${c}%;background:linear-gradient(90deg,var(--em2),var(--em))"></i></div>
+  <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--tx3)"><span>${c}% restored</span>${un?'<span style="color:var(--em);font-weight:800">ENTER →</span>':'<span>🔒 Sealed</span>'}</div></div>
+  ${un?'':'<div class="lockov"><span style="font-size:30px">🔒</span><span>Complete the previous realm</span></div>'}
+ </div>`}).join('')}</div>`;}
+function lockedWorld(id){const w=WORLDS.find(x=>x.id===id);openModal(`<div class="mhead"><h3>${w.icon} ${w.name}</h3><button class="mx" onclick="closeTop()">✕</button></div><div class="mbody" style="text-align:center"><div style="font-size:60px;margin-bottom:12px">🔒</div><p style="color:var(--tx2);line-height:1.7">${w.desc||'This realm lies beyond the mists of Chapter II.'}<br><br>Restore the previous realm to weaken the seals that bind this gate.</p><button class="btn btn-ghost" style="margin-top:18px" onclick="closeTop()">Understood</button></div>`,'560px');}
+
+/* ---------------- modals ---------------- */
+function openModal(html,w){const back=document.createElement('div');back.className='mback';back.dataset.modal='1';const m=document.createElement('div');m.className='modal';if(w)m.style.maxWidth=w;m.innerHTML=html;back.appendChild(m);back.addEventListener('mousedown',e=>{if(e.target===back)closeModal(back)});$('mlayer').appendChild(back);return back}
+function closeModal(back){if(back){back.style.opacity=0;setTimeout(()=>back.remove(),150)}}
+function closeTop(){const ms=document.querySelectorAll('#mlayer .mback');if(ms.length)closeModal(ms[ms.length-1])}
+addEventListener('keydown',e=>{if(e.key==='Escape'){const d=$('dlgbox');if(d.classList.contains('on')){dlgHide();return}closeTop();}});
+
+/* ---------------- coding trials ---------------- */
+let CODE_CTX=null;
+function openCoding(pid,opts){opts=opts||{};const P=PROBLEMS[pid];if(!P)return;const rec=S.problems[pid]||(S.problems[pid]={solved:false,attempts:0,hints:0,timeMs:0});
+ const langs=['javascript','python','java','cpp'];const langNames={javascript:'JavaScript',python:'Python',java:'Java',cpp:'C++'};
+ if(!S.code[pid])S.code[pid]={};if(S.code[pid].javascript===undefined)S.code[pid].javascript=P.starter.javascript;
+ CODE_CTX={pid,opts,lang:'javascript',start:Date.now(),lastRes:null};
+ const back=openModal(`<div class="mhead">
+   <h3>🪨 ${P.title}</h3>
+   <span class="chip">${P.topic}</span><span class="chip">Difficulty ${P.diff}</span><span class="chip" style="color:var(--gold)">+${P.xp} XP</span>
+   ${P.boss?'<span class="chip" style="border-color:var(--red);color:var(--red)">⚔️ BOSS TRIAL</span>':''}
+   <button class="mx" onclick="closeCoding()">✕</button></div>
+  <div class="mbody">
+   <div>
+    <div class="pstmt">${P.stmt}</div>
+    <div style="margin-top:14px"><span class="tag">Sample Tests</span><div id="cm-tests" style="margin-top:8px">${P.tests.map(t=>`<div class="tcase" data-i><span>in: ${esc(JSON.stringify(t.in))}</span><span>→ ${esc(String(t.out??'check'))}</span></div>`).join('')}</div>
+    <div class="oracle"><div class="oh">🔮 AI Oracle ${S.settings.geminiKey?'<span class="chip" style="font-size:10px;padding:2px 8px">Gemini LIVE</span>':'<span class="chip" style="font-size:10px;padding:2px 8px">offline wisdom</span>'}</div>
+      <div class="omsgs" id="cm-omsgs"><div class="om ai">I watch the weave of your logic, adventurer. Ask, and I shall answer.</div></div>
+      <div class="oquick">
+        <button onclick="oracleAsk('hint')">💡 Hint ${rec.hints>0?`(${rec.hints} used)`:'(1st free)'}</button>
+        <button onclick="oracleAsk('why')">🔬 Why did I fail?</button>
+        <button onclick="oracleAsk('optimize')">📈 Optimize</button>
+        <button onclick="oracleAsk('forge')">⚒️ Forge Practice</button>
+      </div>
+    </div>
+    <div id="cm-expl" class="hide" style="margin-top:14px;padding:14px;border-radius:12px;border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.07);font-size:13.5px;line-height:1.7"></div>
+   </div>
+   <div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+     <select id="cm-lang" onchange="cmLang(this.value)" style="padding:9px 12px;border-radius:10px;background:#0d1428;border:1px solid var(--line2);font-size:13px">${langs.map(l=>`<option value="${l}">${langNames[l]}</option>`).join('')}</select>
+     <span style="font-size:11.5px;color:var(--tx3)">Judge executes JavaScript in-browser · other languages are study templates in this MVP</span>
+    </div>
+    <div class="editor-wrap"><pre id="cm-gut">1</pre><textarea id="cm-code" spellcheck="false"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="cmRun()">▶ Run Tests</button>
+      <button class="btn btn-em btn-sm" onclick="cmSubmit()">⚔️ Submit (hidden tests)</button>
+      <button class="btn btn-ghost btn-sm" onclick="cmReset()">↺ Reset</button>
+      <span id="cm-status" style="align-self:center;font-size:12.5px;color:var(--tx3)"></span>
+    </div>
+    <div class="console" id="cm-console"><span class="info">Console output will appear here. Use console.log() freely — the judge captures it.</span></div>
+   </div>
+  </div>`,'1240px');
+ const ta=$('cm-code');ta.value=S.code[pid].javascript||'';updGut();
+ ta.addEventListener('input',()=>{S.code[pid][CODE_CTX.lang]=ta.value;updGut();save();});
+ ta.addEventListener('scroll',()=>{$('cm-gut').scrollTop=ta.scrollTop});
+ ta.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=ta.selectionStart;ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;S.code[pid][CODE_CTX.lang]=ta.value;updGut();}});
+}
+function updGut(){const ta=$('cm-code');if(!ta)return;const n=(ta.value.match(/\n/g)||[]).length+1;$('cm-gut').textContent=Array.from({length:n},(_,i)=>i+1).join('\n');}
+function cmLang(l){const p=PROBLEMS[CODE_CTX.pid];CODE_CTX.lang=l;const ta=$('cm-code');const saved=S.code[CODE_CTX.pid][l];
+ if(saved!==undefined)ta.value=saved;else ta.value=p.starter[l]||p.starter.javascript;updGut();SFX.click();}
+function cmReset(){const p=PROBLEMS[CODE_CTX.pid];$('cm-code').value=p.starter[CODE_CTX.lang]||p.starter.javascript;S.code[CODE_CTX.pid][CODE_CTX.lang]=$('cm-code').value;updGut();}
+function closeCoding(){closeTop();CODE_CTX=null;if(COMBAT&&COMBAT.pendingBoss){/* boss stays waiting */}}
+function cmConsole(html){$('cm-console').innerHTML=html}
+async function cmRun(){if(CODE_CTX.lang!=='javascript'){cmConsole('<span class="warn">⚠ The Arena Judge executes JavaScript in this MVP build. Switch language to JavaScript to run your code — the '+CODE_CTX.lang+' template is provided for study and for the future server-side judge.</span>');return}
+ const p=PROBLEMS[CODE_CTX.pid];$('cm-status').textContent='Judging…';const res=await judgeCode($('cm-code').value,p.fn,p.tests);CODE_CTX.lastRes=res;renderJudge(res,'run');$('cm-status').textContent='';}
+async function cmSubmit(){if(CODE_CTX.lang!=='javascript'){cmConsole('<span class="warn">⚠ Hidden trials demand JavaScript in this MVP build. Convert your solution and resubmit — true valor speaks the judge\u2019s tongue.</span>');return}
+ const {pid,opts}=CODE_CTX,p=PROBLEMS[pid];$('cm-status').textContent='Hidden trials engaged…';
+ const res=await judgeCode($('cm-code').value,p.fn,p.tests.concat(p.hidden||[]));CODE_CTX.lastRes=res;renderJudge(res,'submit');$('cm-status').textContent='';
+ const rec=S.problems[pid]||(S.problems[pid]={solved:false,attempts:0,hints:0,timeMs:0});rec.attempts++;S.stats.attempts++;
+ const topic=p.topic;S.stats.byTopic[topic]=S.stats.byTopic[topic]||{a:0,c:0};S.stats.byTopic[topic].a++;
+ const allPass=res.ok&&res.res.every(r=>r.ok);
+ if(allPass){S.stats.correct++;S.stats.byTopic[topic].c++;rec.solved=true;rec.timeMs=Date.now()-CODE_CTX.start;S.stats.times.push(rec.timeMs);
+  const elite=S.streak>=2&&!p.boss;let xp=p.xp,coins=p.coins;
+  if(opts.daily&&!rec.solvedToday){xp*=2;rec.solvedToday=true;toast('⚡ Daily Challenge!',`Double XP claimed: +${xp} XP`,'gold')}
+  if(elite){xp=Math.round(xp*1.5);S.streak=0;unlockAch('elite');toast('🔥 ELITE TRIAL','Your streak invoked elite judgment: +50% XP!','pur');}
+  if(rec.hints===0&&opts.stone)unlockAch('sharp_mind');
+  gainXP(xp);gainCoins(coins);S.streak=(S.streak||0)+1;
+  $('cm-expl').classList.remove('hide');$('cm-expl').innerHTML='<b style="color:var(--em)">📖 Seal Restored — Explanation</b><br>'+p.expl+'<br><span style="color:var(--gold);font-weight:700">'+p.cx+'</span>';
+  SFX.win();confetti();
+  if(opts.onSuccess)setTimeout(()=>{closeCoding();opts.onSuccess();},1200);else setTimeout(closeCoding,2600);
+ }else{S.streak=0;
+  if(rec.attempts>=2){const m=$('cm-omsgs');if(m)m.insertAdjacentHTML('beforeend','<div class="om ai">I sense struggle. Take a <b>hint</b>, or let me <b>forge a simpler practice trial</b> — wisdom is knowing when to train smaller. 💙</div>');}
+  if(opts.onFailSubmit)opts.onFailSubmit(res);
+ }
+ save();}
+function renderJudge(res,mode){const c=$('cm-console');let h='';
+ for(const l of(res.logs||[]))h+=`<div class="info">› ${esc(l)}</div>`;
+ if(!res.ok){h+=`<div class="bad">✖ ${esc(res.error)}</div>`;}
+ else{res.res.forEach((r,i)=>{h+=r.ok?`<div class="ok">✔ Test ${i+1} passed ${mode==='submit'?'':''}— got ${esc(r.got)}</div>`
+  :`<div class="bad">✖ Test ${i+1} ${r.error?'error: '+esc(r.error):`— expected ${esc(String(r.expected))}, got ${esc(r.got)}`}</div>`});
+  const pass=res.res.filter(r=>r.ok).length;h=`<div class="${pass===res.res.length?'ok':'warn'}">— ${pass}/${res.res.length} trials ${pass===res.res.length?'PASSED':'survived'} —</div>`+h;}
+ c.innerHTML=h;c.scrollTop=0;
+ const rows=document.querySelectorAll('#cm-tests .tcase');if(res.res)rows.forEach((el,i)=>{if(res.res[i]){el.classList.add(res.res[i].ok?'pass':'fail')}});}
+async function oracleAsk(intent){const {pid}=CODE_CTX;const msgs=$('cm-omsgs');const labels={hint:'Give me a hint',why:'Why did I fail?',optimize:'How do I optimize?',forge:'Forge me practice'};
+ msgs.insertAdjacentHTML('beforeend',`<div class="om me">${labels[intent]}</div>`);
+ let reply=null;
+ if(S.settings.geminiKey){const p=PROBLEMS[pid];reply=await geminiAsk(`You are the Oracle of Nexaura, a fantasy AI mentor in a DSA learning RPG. Problem: "${p.title}" — ${p.stmt.replace(/<[^>]+>/g,'')}. Student ${intent==='why'&&CODE_CTX.lastRes?('failed with: '+JSON.stringify(CODE_CTX.lastRes).slice(0,400)):''}. Intent: ${intent}. Reply in max 3 short sentences, encouraging, specific, fantasy-flavored.`);}
+ if(!reply)reply=localOracle(intent,pid,CODE_CTX.lastRes);
+ if(reply==='__FORGE__'){const fp=forgePractice(pid);msgs.insertAdjacentHTML('beforeend','<div class="om ai">⚒️ The forge ignites — a fresh trial is born!</div>');setTimeout(()=>openCoding2(fp),400);return;}
+ msgs.insertAdjacentHTML('beforeend',`<div class="om ai">${reply}</div>`);msgs.scrollTop=msgs.scrollHeight;
+ if(intent==='hint'){const rec=S.problems[pid];const free=rec.hints===0;rec.hints++;
+  if(!free){if(S.coins>=15){gainCoins(-15);toast('🔮 Oracle paid','15 coins for deeper wisdom','pur')}else{rec.hints--;toast('🔮 Not enough coins','Deeper hints cost 15 🪙','bad');return}}
+  save();}
+ SFX.magic();}
+function openCoding2(fp){/* forged practice problem (runtime-generated) */PROBLEMS['__forge']=fp;openCoding('__forge',{});}
+
+/* ---------------- combat ---------------- */
+let COMBAT=null;
+function startCombat(foe){if(COMBAT)return;SFX.hit();
+ COMBAT={foe:{...foe},playerTurn:true,busy:false,pendingBoss:foe.boss||false};
+ const back=openModal(`<div class="mhead"><h3>⚔️ ${foe.boss?'BOSS BATTLE':'Encounter'} — ${foe.name}</h3>${foe.boss?'<span class="chip" style="border-color:var(--red);color:var(--red)">Deadly</span>':''}<button class="mx" onclick="fleeCombat(true)">🏃</button></div>
+  <div class="arena">
+   <div class="fighter" id="f-pl"><canvas id="cv-pl" width="128" height="128"></canvas><div class="nm">${esc(S.user.name)}</div><div class="hpbar pl"><i id="cb-php" style="width:${100*S.hp/hpMax()}%"></i></div><div style="font-size:12px;color:var(--tx3);margin-top:4px" id="cb-phpt">${S.hp}/${hpMax()}</div></div>
+   <div style="font-family:var(--disp);font-size:26px;color:var(--red)">VS</div>
+   <div class="fighter" id="f-en"><canvas id="cv-en" width="160" height="160"></canvas><div class="nm">${foe.name}</div><div class="hpbar"><i id="cb-ehp" style="width:100%"></i></div><div style="font-size:12px;color:var(--tx3);margin-top:4px" id="cb-ehpt">${foe.hp}/${foe.hp}</div></div>
+  </div>
+  <div class="clog" id="cb-log">${foe.boss?'The air crackles. Its weakness is a harder trial…':'The creature blocks your path!'}</div>
+  <div class="acts" id="cb-acts"></div>`,'680px');
+ drawArt($('cv-pl').getContext('2d'),ART.knight,PALS['knight'+(S.skin==='gold'?'_gold':S.skin==='pur'?'_pur':'')],32,16,12);
+ drawArt($('cv-en').getContext('2d'),foe.art,foe.pal,foe.boss?10:28,foe.boss?16:40,foe.boss?14:12);
+ renderActs();}
+function renderActs(){const a=$('cb-acts');if(!a||!COMBAT)return;const pot=hasItem('potion');
+ a.innerHTML=`<button onclick="cbAttack()" ${COMBAT.busy?'disabled':''}>🗡️ Strike<br><small style="color:var(--tx3)">~${6+weaponDmg()} dmg</small></button>
+ <button onclick="cbSpell()" ${COMBAT.busy?'disabled':''}>✨ Syntax Surge<br><small style="color:var(--tx3)">Big-O quiz · big dmg</small></button>
+ ${COMBAT.foe.boss?`<button onclick="cbTrial()" ${COMBAT.busy?'disabled':''} style="border-color:var(--gold)">🪨 Runic Trial<br><small style="color:var(--gold)">Solve = finisher</small></button>`:''}
+ <button onclick="cbPotion()" ${COMBAT.busy||!pot?'disabled':''}>🧪 Potion (${S.inventory.potion||0})<br><small style="color:var(--tx3)">+35 HP</small></button>
+ ${COMBAT.foe.boss?'':`<button onclick="fleeCombat()" ${COMBAT.busy?'disabled':''}>🏃 Flee<br><small style="color:var(--tx3)">70%</small></button>`}`;}
+function cbDmgFloat(who,n,cls){const f=$(who);if(!f)return;const d=document.createElement('div');d.className='dmgfloat '+(cls||'');d.textContent=(cls==='heal'?'+':'-')+n;d.style.left=R(30,60)+'%';d.style.top='30%';f.style.position='relative';f.appendChild(d);setTimeout(()=>d.remove(),1000);}
+function cbUpd(){if(!COMBAT)return;$('cb-ehp').style.width=(100*clamp(COMBAT.foe.hp,0,COMBAT.foe.maxhp)/COMBAT.foe.maxhp)+'%';$('cb-ehpt').textContent=Math.max(0,COMBAT.foe.hp)+'/'+COMBAT.foe.maxhp;$('cb-php').style.width=(100*clamp(S.hp,0,hpMax())/hpMax())+'%';$('cb-phpt').textContent=Math.max(0,S.hp)+'/'+hpMax();}
+function cbLog(t){const l=$('cb-log');if(l)l.innerHTML=t}
+function enemyTurn(){if(!COMBAT)return;COMBAT.busy=true;renderActs();setTimeout(()=>{if(!COMBAT)return;const d=RI(COMBAT.foe.atk-3,COMBAT.foe.atk+3);S.hp-=d;save();SFX.hit();
+ $('f-pl').classList.add('shake');setTimeout(()=>$('f-pl')&&$('f-pl').classList.remove('shake'),400);cbDmgFloat('f-pl',d);cbUpd();
+ if(S.hp<=0)return playerDown();cbLog(`${COMBAT.foe.name} strikes for <b style="color:var(--red)">${d}</b>!`);COMBAT.busy=false;renderActs();},700);}
+function cbAttack(){if(!COMBAT||COMBAT.busy)return;COMBAT.busy=true;renderActs();const d=RI(5,9)+weaponDmg();COMBAT.foe.hp-=d;SFX.hit();
+ $('f-en').classList.add('shake');setTimeout(()=>$('f-en')&&$('f-en').classList.remove('shake'),400);cbDmgFloat('f-en',d);cbUpd();cbLog(`You strike for <b style="color:var(--em)">${d}</b>!`);
+ if(COMBAT.foe.hp<=0)return victory();enemyTurn();}
+function cbSpell(){if(!COMBAT||COMBAT.busy)return;COMBAT.busy=true;renderActs();const qz=QUIZ[RI(0,QUIZ.length-1)];
+ openModal(`<div class="mhead"><h3>✨ Syntax Surge</h3></div><div class="mbody"><p style="font-size:16px;margin-bottom:16px">${qz.q}</p><div style="display:grid;gap:10px">${qz.a.map((a,i)=>`<button class="btn btn-ghost" style="justify-content:flex-start" onclick="cbSpellAns(${i},${qz.c})">${a}</button>`).join('')}</div></div>`,'460px').dataset.spell='1';}
+function cbSpellAns(i,c){document.querySelectorAll('#mlayer .mback').forEach(b=>{if(b.dataset.spell)closeModal(b)});if(!COMBAT)return;
+ if(i===c){const d=RI(14,22)+Math.floor(weaponDmg()/2);COMBAT.foe.hp-=d;SFX.magic();$('f-en').classList.add('flash');setTimeout(()=>$('f-en')&&$('f-en').classList.remove('flash'),400);cbDmgFloat('f-en',d,'magic');cbUpd();cbLog(`✨ Correct! Syntax Surge hits for <b style="color:var(--pur)">${d}</b>!`);if(COMBAT.foe.hp<=0)return victory();}
+ else{cbLog('The spell fizzles — wrong answer. The correct one was: <b>'+QUIZ.find(q=>q.a[c]&&q.a[c])?.a[c]+'…</b>');}
+ enemyTurn();}
+function cbTrial(){if(!COMBAT)return;const pid=COMBAT.foe.problem;COMBAT.busy=true;renderActs();
+ openCoding(pid,{boss:true,onSuccess:()=>{if(COMBAT){COMBAT.foe.hp=0;cbUpd();cbLog('<b style="color:var(--gold)">The trial is solved — the runes blaze white!</b>');setTimeout(victory,700);}},
+  onFailSubmit:()=>{if(COMBAT){S.hp-=16;save();cbUpd();cbDmgFloat('f-pl',16);cbLog('The runes reject your code — the boss retaliates for <b style="color:var(--red)">16</b>!');if(S.hp<=0){closeCoding();playerDown();}}}});}
+function cbPotion(){if(!COMBAT||COMBAT.busy||!useItem('potion'))return;COMBAT.busy=true;S.hp=Math.min(hpMax(),S.hp+35);save();cbUpd();cbDmgFloat('f-pl',35,'heal');cbLog('You drink a Small Potion. <b style="color:var(--em)">+35 HP</b>.');SFX.magic();enemyTurn();}
+function fleeCombat(force){if(!COMBAT)return;if(!force&&Math.random()>.3){cbLog('You fail to escape!');return enemyTurn()}
+ const was=COMBAT;COMBAT=null;document.querySelectorAll('#mlayer .mback').forEach(b=>closeModal(b));if(!force)toast('🏃 You fled','The '+was.foe.name+' watches you go.','');}
+function playerDown(){if(!COMBAT)return;const f=COMBAT.foe;COMBAT=null;document.querySelectorAll('#mlayer .mback').forEach(b=>closeModal(b));SFX.lose();
+ S.hp=hpMax();const lost=Math.floor(S.coins*.1);S.coins-=lost;save();
+ if(G.active){G.px=G.spawn[0]*TS+TS/2;G.py=G.spawn[1]*TS+TS/2;}
+ openModal(`<div class="mbody rew"><div class="big">💀</div><h2 style="background:none;-webkit-text-fill-color:var(--red);color:var(--red)">You Have Fallen</h2><p style="color:var(--tx2)">The kingdom's light pulls you back to the realm's entrance. ${lost} coins scatter into the dark.</p><button class="btn btn-ghost" style="margin-top:18px" onclick="closeTop()">Rise Again</button></div>`,'440px');updHUD();}
+function victory(){if(!COMBAT)return;const f=COMBAT.foe;COMBAT=null;document.querySelectorAll('#mlayer .mback').forEach(b=>closeModal(b));SFX.win();confetti();unlockAch('bug_squasher');
+ gainXP(f.xp);gainCoins(f.coins);
+ if(f.id==='boss_arrays'){S.worlds.arrays.bossDown=true;qStep('q_grove','boss_arrays');unlockAch('grove_guardian');S.user.title='Grove Guardian';addItem('scroll_rev');afterBoss('arrays');}
+ else if(f.id==='boss_strings'){S.worlds.strings.bossDown=true;qStep('q_strings','boss_strings');unlockAch('rune_whisperer');S.user.title='Rune Whisperer';afterBoss('strings');}
+ else{if(G.active){const e=G.ents.find(e=>e.eid===f.eid);if(e)e.dead=true,e.respawn=Date.now()+25000;}}
+ openModal(`<div class="mbody rew"><div class="big">${f.boss?'👑':'🏆'}</div><h2>${f.boss?'REALM RESTORED!':'Victory!'}</h2><p style="color:var(--tx2)">${f.boss?'The '+f.name+' dissolves into pure logic. Light floods the realm.':f.name+' bursts into harmless sparks.'}</p>
+ <div class="rewitems"><div>+${f.xp} XP</div><div>+${f.coins} 🪙</div>${f.boss?'<div>🎖️ Realm Badge</div>':''}</div>
+ <button class="btn btn-gold" onclick="closeTop()">Claim Glory</button></div>`,'480px');save();updHUD();}
+function afterBoss(w){if(w==='arrays'){S.worlds.strings.unlocked=true;G.pendingPortal={x:8,y:8,to:{geo:'strings',x:2,y:8},label:'Portal to the Valley of Strings'};toast('🌍 New Realm Unlocked','The Valley of Strings awaits through the portal!','gold');}
+ if(w==='strings'){G.pendingPortal={x:8,y:8,to:{geo:'village',x:13,y:12},label:'Portal home'};toast('🏰 The Kingdom Stirs','The Castle looms in Chapter II. For now… victory.','gold');unlockAch('rune_whisperer');}}
+
+/* ---------------- inventory ---------------- */
+function renderInv(){const ents=Object.entries(S.inventory);
+ $('pane-inv').innerHTML=`<div class="phead"><h2>Your Pack & Arsenal</h2><span class="coin" style="font-size:16px">🪙 ${S.coins}</span></div>
+ <div style="margin-bottom:14px;color:var(--tx2);font-size:13.5px">Equipped weapon: <b style="color:var(--tx)">${S.equip.weapon?ITEMS[S.equip.weapon].name+' (+'+(ITEMS[S.equip.weapon].dmg+S.forgeHone*3)+' dmg)':'Bare fists (+0 — brave, but unwise)'}</b></div>
+ ${ents.length?`<div class="invgrid">${ents.map(([id,q])=>{const it=ITEMS[id];if(!it)return'';
+  return `<div class="glass item rar-${it.rar}">${it.type==='weapon'&&S.equip.weapon===id?'<div class="equiptag">EQUIPPED</div>':''}<div class="qty">×${q}</div><div class="ic">${it.icon}</div><h4>${it.name}</h4><p>${it.desc}</p><div style="margin-top:12px;display:flex;gap:8px">
+  ${it.type==='weapon'?`<button class="btn btn-em btn-sm" onclick="equipW('${id}')">Equip</button>`:''}
+  ${it.type==='consumable'?`<button class="btn btn-ghost btn-sm" onclick="usePotionUI()">Use</button>`:''}</div></div>`}).join('')}</div>`
+ :'<div class="glass" style="padding:40px;text-align:center;color:var(--tx3)">Your pack is empty. Chests, bosses and merchants await.</div>'}`;}
+function equipW(id){if(hasItem(id)){S.equip.weapon=id;save();renderInv();toast('⚔️ Equipped',ITEMS[id].name,'em')}}
+function usePotionUI(){if(S.hp>=hpMax())return toast('🧪 Already at full HP','','');if(useItem('potion')){S.hp=Math.min(hpMax(),S.hp+35);save();updHUD();renderInv();SFX.magic();}}
+
+/* ---------------- leaderboard ---------------- */
+function renderBoard(){const tab=(renderBoard.t=renderBoard.t||'global');const mine=S.week.xp;
+ let rows=SEED_BOARD.map(([n,x,w],i)=>({n,x,w,me:false}));rows.push({n:S.user.name+' (You)',x:mine,w:levelOf(S.xp).l,me:true});
+ rows.sort((a,b)=>b.x-a.x);
+ const friends=rows.filter(r=>r.me||['Sylvara','Mira Chen','Tiny Turing'].includes(r.n));
+ const list=tab==='friends'?friends:rows;
+ $('pane-board').innerHTML=`<div class="tabs">
+  <button class="${tab==='global'?'on':''}" onclick="renderBoard.t='global';renderBoard()">🌍 Global</button>
+  <button class="${tab==='friends'?'on':''}" onclick="renderBoard.t='friends';renderBoard()">🤝 Friends</button></div>
+  <div class="lbrow" style="background:transparent;border:none;color:var(--tx3);font-size:12px;text-transform:uppercase;letter-spacing:1px"><span>#</span><span>Adventurer</span><span>Weekly XP</span><span class="wcol">Level</span></div>
+  ${list.map((r,i)=>`<div class="lbrow ${r.me?'me':''}"><span class="rk">${i+1}</span><span>${r.me?S.user.avatar:'🧝'} <b>${esc(r.n)}</b>${i===0?' 👑':''}</span><span style="color:var(--gold);font-weight:800">${r.x}</span><span class="wcol" style="color:var(--tx3)">Lv ${r.w}</span></div>`).join('')}
+  <p style="color:var(--tx3);font-size:12.5px;margin-top:16px">Weekly XP resets every Monday. In the full-stack build this is served by the Express leaderboard API.</p>`;}
+
+/* ---------------- analytics ---------------- */
+function renderStats(){const avg=S.stats.times.length?Math.round(S.stats.times.reduce((a,b)=>a+b,0)/S.stats.times.length/1000):0;
+ const topics=Object.entries(S.stats.byTopic);
+ const weak=topics.filter(([t,v])=>v.a>=2&&v.c/v.a<.6).map(([t])=>t);
+ const strong=topics.filter(([t,v])=>v.a>=1&&v.c/v.a>=.8).map(([t])=>t);
+ const recs=Object.entries(PROBLEMS).filter(([id,p])=>!(S.problems[id]&&S.problems[id].solved)&&(!weak.length||weak.includes(p.topic))).slice(0,3);
+ $('pane-stats').innerHTML=`<div class="ana-grid">
+  <div class="glass stat"><b>${Solved()}</b><span>Problems Solved</span></div>
+  <div class="glass stat"><b>${acc()}%</b><span>Accuracy</span></div>
+  <div class="glass stat"><b>${avg}s</b><span>Avg Solve Time</span></div>
+  <div class="glass stat"><b>${S.stats.attempts}</b><span>Total Submissions</span></div></div>
+ <div class="glass dcard" style="margin-top:20px"><span class="tag">Topic Mastery</span>
+  <div style="margin-top:16px">${topics.length?topics.map(([t,v])=>{const p=Math.round(100*v.c/v.a);return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${t}</span><span style="color:${p<60?'var(--red)':p<80?'var(--gold)':'var(--em)'}">${p}% (${v.c}/${v.a})</span></div><div class="bar"><i style="width:${p}%;background:${p<60?'linear-gradient(90deg,#ef4444,#f97316)':p<80?'linear-gradient(90deg,#f59e0b,#f5c453)':'linear-gradient(90deg,var(--em2),var(--em))'}"></i></div></div>`}).join(''):'<p style="color:var(--tx3)">Solve trials to populate mastery data.</p>'}</div></div>
+ <div class="dash" style="margin-top:20px;grid-template-columns:1fr 1fr">
+  <div class="glass dcard"><span class="tag" style="color:var(--red)">Weak Topics</span><p style="margin-top:10px;color:var(--tx2)">${weak.length?weak.join(', '):'None detected — impressive.'}</p></div>
+  <div class="glass dcard"><span class="tag">Strong Topics</span><p style="margin-top:10px;color:var(--tx2)">${strong.length?strong.join(', '):'Still forging your strengths.'}</p></div></div>
+ <div class="glass dcard" style="margin-top:20px"><span class="tag">🎯 Recommended Practice</span>
+  <div style="margin-top:14px">${recs.length?recs.map(([id,p])=>`<div class="qrow"><span>🪨 ${p.title} <span style="color:var(--tx3)">· ${p.topic} · ${p.diff}</span></span><button class="btn btn-em btn-sm" onclick="openCoding('${id}')">Train</button></div>`).join(''):'<p style="color:var(--tx3)">You have conquered every available trial. Chapter II awaits.</p>'}</div></div>`;}
+
+/* ---------------- profile / settings ---------------- */
+function renderProfile(){const L=levelOf(S.xp);
+ $('pane-profile').innerHTML=`<div class="dash">
+ <div class="glass dcard dhero"><div class="dav">${S.user.avatar}</div><div style="flex:1"><h2>${esc(S.user.name)}</h2><div style="color:var(--gold);font-weight:700">“${esc(S.user.title)}”</div><div style="color:var(--tx3);font-size:13px;margin-top:4px">${esc(S.user.email||'guest wanderer')}</div></div></div>
+ <div class="glass dcard"><span class="tag">Choose Title</span><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${TITLES.map(t=>{const owned=t==='Novice Wanderer'||t==='Grove Guardian'&&S.ach.includes('grove_guardian')||t==='Rune Whisperer'&&S.ach.includes('rune_whisperer')||t==='Shardkeeper'&&S.ach.includes('shardkeeper')||t==='Logic Knight'&&L.l>=5||t==='Nullbane'&&S.ach.includes('grove_guardian')&&S.ach.includes('rune_whisperer');
+  return `<button class="btn btn-sm ${S.user.title===t?'btn-gold':'btn-ghost'}" ${owned?'':'disabled title="Locked — earn it"'} onclick="S.user.title='${t}';save();renderProfile()">${t}</button>`}).join('')}</div></div></div>
+ <div class="ana-grid" style="margin-top:20px">
+  <div class="glass stat"><b>Lv ${L.l}</b><span>Level</span></div>
+  <div class="glass stat"><b>${S.xp}</b><span>Total XP</span></div>
+  <div class="glass stat"><b>${S.ach.length}</b><span>Achievements</span></div>
+  <div class="glass stat"><b>${Solved()}</b><span>Trials</span></div></div>
+ <div class="glass dcard" style="margin-top:20px"><span class="tag">Account</span>
+  <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+   <button class="btn btn-ghost btn-sm" onclick="if(confirm('Erase ALL progress for this account?')){localStorage.removeItem(skey());location.reload()}">🗑️ Delete Save</button>
+   <button class="btn btn-ghost btn-sm" onclick="logout()">🚪 Logout</button></div></div>`;}
+function sw(id){const el=$('sw-'+id);const on=!S.settings[id];S.settings[id]=on;el.classList.toggle('on',on);applySettings();if(id==='music'){on?startMusic():stopMusic()}save();SFX.click();}
+function renderSettings(){$('pane-settings').innerHTML=`<div class="glass" style="max-width:680px">
+ <div class="setrow"><div class="lab"><b>🎵 Music</b><span>Ambient kingdom score</span></div><button class="sw ${S.settings.music?'on':''}" id="sw-music" onclick="sw('music')"></button></div>
+ <div class="setrow"><div class="lab"><b>🔊 Sound Effects</b><span>Coins, combat, fanfares</span></div><button class="sw ${S.settings.sfx?'on':''}" id="sw-sfx" onclick="sw('sfx')"></button></div>
+ <div class="setrow"><div class="lab"><b>🔔 Notifications</b><span>Quest & reward toasts</span></div><button class="sw ${S.settings.notif?'on':''}" id="sw-notif" onclick="sw('notif')"></button></div>
+ <div class="setrow"><div class="lab"><b>🐢 Reduce Motion</b><span>Disables background animation & confetti</span></div><button class="sw ${S.settings.reduce?'on':''}" id="sw-reduce" onclick="sw('reduce')"></button></div>
+ <div class="setrow"><div class="lab"><b>🔍 Larger Text</b><span>Accessibility scaling</span></div><button class="sw ${S.settings.bigtext?'on':''}" id="sw-bigtext" onclick="sw('bigtext')"></button></div>
+ <div class="setrow"><div class="lab"><b>🎨 Realm Accent</b><span>UI color theme</span></div><div style="display:flex;gap:8px">${[['emerald','🟢'],['amethyst','🟣'],['aurum','🟡']].map(([a,e])=>`<button class="btn btn-sm ${S.settings.accent===a?'btn-em':'btn-ghost'}" onclick="S.settings.accent='${a}';save();renderSettings();applySettings()">${e}</button>`).join('')}</div></div>
+ <div class="setrow"><div class="lab"><b>🌐 Language</b><span>UI language</span></div><select style="padding:9px;border-radius:10px;background:#0d1428;border:1px solid var(--line2)"><option>English</option><option disabled>Español — Chapter II</option><option disabled>हिन्दी — Chapter II</option></select></div>
+ <div class="setrow"><div class="lab"><b>🤖 Gemini API Key</b><span>Powers the live AI Oracle (stored locally). Leave blank for offline wisdom.</span></div><input style="padding:9px;border-radius:10px;background:#0d1428;border:1px solid var(--line2);width:260px" type="password" placeholder="AIza…" value="${esc(S.settings.geminiKey||'')}" onchange="S.settings.geminiKey=this.value.trim();save();toast('🤖 Oracle updated','Gemini key saved.','pur')"></div>
+</div>`;}
+
+/* ================= GAME ENGINE ================= */
+const TS=40;
+function norm(rows,w,h){const out=[];for(let y=0;y<h;y++){let r=(rows[y]||'').padEnd(w,'.');r=r.slice(0,w);let a=r.split('');if(y===0||y===h-1){a=a.map(()=>'#')}else{a[0]='#';a[w-1]='#'}out.push(a.join(''));}return out}
+const MAPS={
+ village:{w:26,h:16,pal:'lush',map:norm([
+  "##########################",
+  "#...*.......**.......*...#",
+  "#.HH...pp.........HH.....#",
+  "#.HH...pp.........HH.....#",
+  "#........pp..............#",
+  "#..ppppppppppppppp...*...#",
+  "#..p.....~~~.....p.......#",
+  "#..p....~~~~~....p...*...#",
+  "#..p.....~~~.....p.......#",
+  "#..ppppppppppppppp...HH..#",
+  "#........p.......p...HH..#",
+  "#..*.....p...F...p.......#",
+  "#........p.......p...pppX#",
+  "#.....*..ppppppppp.......#",
+  "#........................#",
+  "##########################"],26,16)},
+ arrays:{w:34,h:20,pal:'forest',map:norm([
+  "##################################",
+  "#....*................*..........#",
+  "#..#......##.....#.........###...#",
+  "#.....................*..........#",
+  "#...*.....#.....#...........#....#",
+  "#..#.................*...........#",
+  "#.......#......~~...........#....#",
+  "#...*..........~~......#.........#",
+  "#.......#......~~................#",
+  "#..ppppppppppppbbpppppppppppppp..#",
+  "#..p...........~~.............#..#",
+  "#..p....#......~~.....#............",
+  "#..p...........~~................#",
+  "#..p..#........~~...#........#...#",
+  "#..p...........~~..........#.....#",
+  "#..pppppppp....~~....pppppppp....#",
+  "#.........p....~~....p......*....#",
+  "#..*......pppppbbppppp..#........#",
+  "#.....................X..........#",
+  "##################################"],34,20)},
+ arrays_arena:{w:16,h:12,pal:'arena',map:norm([
+  "################",
+  "#..............#",
+  "#..*........*..#",
+  "#..............#",
+  "#..............#",
+  "#..............#",
+  "#..............#",
+  "#..*........*..#",
+  "#..............#",
+  "#..............#",
+  "#..............#",
+  "################"],16,12)},
+ strings:{w:34,h:18,pal:'canyon',map:norm([
+  "##################################",
+  "#......#..........#..............#",
+  "#..#......................#......#",
+  "#.........*......................#",
+  "#....#..........#.......#........#",
+  "#................................#",
+  "#..*......#..................#...#",
+  "#.....#.........*.................",
+  "#..............#......#..........#",
+  "#...#......#.............#........#",
+  "#.......*..................*.....#",
+  "#..#...........#......#..........#",
+  "#.........................#......#",
+  "#....*.......#....................",
+  "#.......#..........#......*......#",
+  "#............................#....#",
+  "#..*.........................X...#",
+  "##################################"],34,18)},
+ strings_arena:{w:16,h:12,pal:'canyon',map:norm([
+  "################",
+  "#..............#",
+  "#..*........*..#",
+  "#..............#",
+  "#..............#",
+  "#..............#",
+  "#..............#",
+  "#..*........*..#",
+  "#..............#",
+  "#..............#",
+  "#..............#",
+  "################"],16,12)}};
+const TPAL={
+ lush:{grass:'#1c3a2e',grass2:'#214434',path:'#7d6748',path2:'#6f5b3e',tree:'#123125',canopy:'#2e7d54',water:'#1e5f8a',wall:'#6b4f35',roof:'#a63d40'},
+ forest:{grass:'#12291f',grass2:'#163226',path:'#5f5039',path2:'#54462f',tree:'#0b1f16',canopy:'#1e6b45',water:'#1c4f75',wall:'#4a3a28',roof:'#37543b'},
+ canyon:{grass:'#241b38',grass2:'#2b2145',path:'#5d4a6e',path2:'#514061',tree:'#171128',canopy:'#4c3a78',water:'#3b2a75',wall:'#3a2d58',roof:'#5b478a'},
+ arena:{grass:'#191424',grass2:'#1f1930',path:'#4a4158',path2:'#40384c',tree:'#0e0a18',canopy:'#3d3355',water:'#2c2352',wall:'#332b45',roof:'#443a5e'}};
+const GEO={
+ village:{map:'village',spawn:[13,12],name:'Tutorial Village',ents:[
+  {t:'npc',id:'sage',x:10,y:10,art:'villager',pal:'sage',name:'Old Sage'},
+  {t:'npc',id:'kid',x:4,y:13,art:'villager',pal:'kid',name:'Village Child'},
+  {t:'npc',id:'merchant',x:20,y:5,art:'villager',pal:'merchant',name:'Merchant'},
+  {t:'stone',id:'stone_echo',pid:'echo',x:13,y:6},
+  {t:'chest',id:'vch1',x:2,y:13,loot:{coins:25,items:['potion']}},
+  {t:'shard',id:'sh1',x:23,y:13},
+  {t:'coin',x:7,y:5},{t:'coin',x:15,y:10},{t:'coin',x:3,y:11},{t:'coin',x:18,y:13},
+  {t:'portal',x:24,y:12,to:{geo:'arrays',x:2,y:9},cond:()=> (S.quests.q_first&&S.quests.q_first.done.solve_echo)?'':'Solve the Runestone of Beginnings to unseal the gate.'},
+  {t:'sign',x:11,y:13,text:'Tutorial Village — population: hopeful.'}]},
+ arrays:{map:'arrays',spawn:[2,9],name:'Forest of Arrays',ents:[
+  {t:'npc',id:'wizard',x:20,y:8,art:'villager',pal:'wizard',name:'Wizard Compiler'},
+  {t:'npc',id:'smith',x:4,y:10,art:'villager',pal:'smith',name:'Blacksmith'},
+  {t:'npc',id:'merchant2',x:26,y:12,art:'villager',pal:'merchant',name:'Merchant'},
+  {t:'stone',id:'st1',pid:'grove-sum',x:6,y:3,step:'st1'},
+  {t:'stone',id:'st2',pid:'mirror-path',x:28,y:4,step:'st2'},
+  {t:'stone',id:'st3',pid:'peak-shrine',x:6,y:16,step:'st3'},
+  {t:'chest',id:'fch1',x:31,y:3,loot:{coins:40,items:['potion']}},
+  {t:'chest',id:'fch2',x:2,y:17,loot:{items:['scroll_rev']}},
+  {t:'shard',id:'sh2',x:28,y:17},
+  {t:'coin',x:12,y:9},{t:'coin',x:19,y:9},{t:'coin',x:8,y:15},{t:'coin',x:24,y:16},
+  {t:'enemy',id:'sl1',x:12,y:4,kind:'slime'},{t:'enemy',id:'sl2',x:24,y:11,kind:'slime'},{t:'enemy',id:'sl3',x:10,y:13,kind:'slime'},
+  {t:'gate',x:22,y:18,to:{geo:'arrays_arena',x:2,y:5},cond:()=>S.worlds.arrays.stones.length>=3?'':'The Colossus\u2019s gate is sealed. Restore '+S.worlds.arrays.stones.length+'/3 Runestones.'},
+  {t:'sign',x:3,y:9,text:'Forest of Arrays — beware the duplicates.'}]},
+ arrays_arena:{map:'arrays_arena',spawn:[2,5],name:'Colossus\u2019 Lair',ents:[
+  {t:'boss',id:'boss_arrays',x:9,y:4,name:'Duplicate Colossus',hp:140,atk:12,xp:250,coins:100,problem:'colossus-core',art:'colossus',pal:'colossus'},
+  {t:'portal',x:8,y:9,to:{geo:'arrays',x:22,y:16},label:'Back to the forest'}]},
+ strings:{map:'strings',spawn:[2,8],name:'Valley of Strings',ents:[
+  {t:'npc',id:'herald',x:4,y:8,art:'villager',pal:'herald',name:'King\u2019s Herald'},
+  {t:'stone',id:'sts1',pid:'whisper',x:6,y:5,step:'sts1'},
+  {t:'stone',id:'sts2',pid:'unique-glyph',x:27,y:12,step:'sts2'},
+  {t:'chest',id:'sch1',x:30,y:3,loot:{coins:50,items:['potion','cloak_pur']}},
+  {t:'shard',id:'sh3',x:3,y:15},
+  {t:'coin',x:15,y:6},{t:'coin',x:20,y:10},{t:'coin',x:10,y:13},
+  {t:'enemy',id:'wr1',x:14,y:6,kind:'wraithling'},{t:'enemy',id:'wr2',x:22,y:10,kind:'wraithling'},
+  {t:'gate',x:29,y:16,to:{geo:'strings_arena',x:2,y:5},cond:()=>S.worlds.strings.stones.length>=2?'':'The Wraith\u2019s lair is veiled. Solve '+S.worlds.strings.stones.length+'/2 valley Runestones.'}]},
+ strings_arena:{map:'strings_arena',spawn:[2,5],name:'Wraith\u2019s Hollow',ents:[
+  {t:'boss',id:'boss_strings',x:9,y:4,name:'Palindrome Wraith',hp:120,atk:11,xp:220,coins:90,problem:'wraith-bane',art:'colossus',pal:'wraithboss'},
+  {t:'portal',x:8,y:9,to:{geo:'village',x:13,y:12},label:'Portal home'}]}};
+
+const G={active:false,geo:null,px:0,py:0,dir:1,moving:false,keys:{},ents:[],cam:{x:0,y:0},raf:0,last:0,stepT:0,toastGate:0};
+const cv=$('gcanvas'),cx=cv.getContext('2d');
+
+function enterWorld(wid){const geoMap={village:'village',arrays:'arrays',strings:'strings'}[wid];if(!geoMap)return;
+ if(!(S.worlds[wid]&&S.worlds[wid].unlocked))return toast('🔒 Sealed Realm','Restore the previous realm first.','bad');
+ loadGeo(geoMap,GEO[geoMap].spawn[0],GEO[geoMap].spawn[1]);show('scr-game');document.body.style.overflow='hidden';G.active=true;startMusic();updHUD();
+ if(wid==='village'&&!(S.quests.q_first&&S.quests.q_first.active))setTimeout(()=>toast('🧭 Find the Old Sage','Walk with WASD / Arrows · Interact with E','pur'),700);}
+function loadGeo(id,x,y){const geo=GEO[id];G.geo=id;G.ents=geo.ents.map((e,i)=>({...e,eid:id+'_'+i,dead:false,ox:e.x*TS+TS/2,oy:e.y*TS+TS/2,ex:e.x*TS+TS/2,ey:e.y*TS+TS/2,wt:0,tx:null,ty:null,aggro:false}));
+ G.px=x*TS+TS/2;G.py=y*TS+TS/2;G.spawn=[x,y];G.pendingPortal=null;$('gworld-name').textContent=geo.name;S.hp=S.hp||hpMax();save();if(!G.raf)loop(0);}
+function exitWorld(){G.active=false;cancelAnimationFrame(G.raf);G.raf=0;document.body.style.overflow='';save();nav('dash');show('scr-app');$('scr-game').classList.remove('on');$('scr-app').classList.add('on');}
+function stopGame(){if(G.active){G.active=false;cancelAnimationFrame(G.raf);G.raf=0;}}
+
+function mapOf(){return MAPS[GEO[G.geo].map]}
+function tileAt(tx,ty){const m=mapOf().map;if(ty<0||ty>=m.length||tx<0||tx>=m[0].length)return '#';return m[ty][tx]}
+function solidTile(ch){if(ch==='#'||ch==='H'||ch==='F')return true;if(ch==='~')return true;if(ch==='X')return true;return false}
+function blocked(nx,ny){for(const e of G.ents){if(e.t==='npc'||e.t==='stone'||(e.t==='chest'&&!chestOpen(e))||(e.t==='boss'&&!bossDead(e))||e.t==='gate'){if(Math.hypot(nx-e.ex,ny-(e.ey+10))<28)return true}}return false}
+function chestOpen(e){return S.worlds[G.geo.split('_arena')[0]&&GEO[G.geo]?Object.keys(S.worlds).find(w=>GEO[G.geo].ents.some(x=>x.id===e.id)):'village']?.chests?.includes(e.id)}
+function wsOf(e){for(const w of Object.keys(S.worlds)){if(GEO[w]&&GEO[w].ents.some(x=>x.id===e.id))return S.worlds[w];if(GEO[w+'_arena']&&GEO[w+'_arena'].ents.some(x=>x.id===e.id))return S.worlds[w]}return S.worlds.village}
+function bossDead(e){for(const w of Object.keys(S.worlds))if(GEO[w+'_arena']&&GEO[w+'_arena'].ents.some(x=>x.id===e.id))return S.worlds[w].bossDown;return false}
+
+addEventListener('keydown',e=>{const gActive=$('scr-game').classList.contains('on');
+ if(gActive&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','w','a','s','d','W','A','S','D'].includes(e.key))e.preventDefault();
+ if(document.querySelector('textarea:focus, input:focus'))return;
+ G.keys[e.key.toLowerCase()]=true;G.keys[e.key]=true;
+ if(gActive&&(e.key==='e'||e.key==='E'||e.key===' '))interact();});
+addEventListener('keyup',e=>{G.keys[e.key.toLowerCase()]=false;G.keys[e.key]=false;});
+document.querySelectorAll('#tpad button').forEach(b=>{const k=b.dataset.k;b.addEventListener('touchstart',e=>{e.preventDefault();if(k==='e')interact();else{G.keys[k]=true}});b.addEventListener('touchend',e=>{e.preventDefault();if(k!=='e')G.keys[k]=false});});
+
+function loop(t){if(!G.active){G.raf=0;return}G.raf=requestAnimationFrame(loop);const dt=Math.min(32,t-G.last||16);G.last=t;update(dt/16.6,t);render(t);}
+function update(k,t){const kx=G.keys;let dx=0,dy=0;
+ if(kx['arrowleft']||kx['a'])dx-=1;if(kx['arrowright']||kx['d'])dx+=1;if(kx['arrowup']||kx['w'])dy-=1;if(kx['arrowdown']||kx['s'])dy+=1;
+ if(dx&&dy){dx*=.707;dy*=.707}G.moving=!!(dx||dy);if(dx)G.dir=dx>0?1:-1;
+ const sp=3.1*k,r=9;
+ let nx=G.px+dx*sp;
+ if(!hitWall(nx,G.py,r)&&!blocked(nx,G.py))G.px=nx;
+ let ny=G.py+dy*sp;
+ if(!hitWall(G.px,ny,r)&&!blocked(G.px,ny))G.py=ny;
+ if(G.moving){G.stepT+=k;if(G.stepT>11){G.stepT=0;SFX.step()}}
+ // entities
+ for(const e of G.ents){
+  if(e.t==='coin'&&!e.dead){if(Math.hypot(G.px-e.ex,G.py-e.ey)<24){e.dead=true;gainCoins(5);SFX.coin();floatText(e.ex,e.ey,'+5 🪙')}}
+  if(e.t==='shard'&&!e.dead){const ws=wsOf(e);if(!ws.shards.includes(e.id)&&Math.hypot(G.px-e.ex,G.py-e.ey)<26){ws.shards.push(e.id);e.dead=true;addItem('shard');SFX.magic();const n=ws.shards.length;floatText(e.ex,e.ey,'💠 Mana Shard!');
+    const q=qState('q_shards');if(!q.active)activateQuest('q_shards');qStep('q_shards','shard_'+n);if(n>=3){/* reward handled by quest */}}}
+  if(e.t==='portal'&&!e.dead&&Math.hypot(G.px-e.ex,G.py-e.ey)<26){usePortal(e);return}
+  if(e.t==='enemy'&&!e.dead){if(e.respawn&&Date.now()>e.respawn){e.respawn=0;e.ex=e.ox;e.ey=e.oy}
+   if(!e.respawn){const d=Math.hypot(G.px-e.ex,G.py-e.ey);e.aggro=d<120;
+    if(e.aggro&&d>4){const a=Math.atan2(G.py-e.ey,G.px-e.ex);const s=(d<60?1.4:1.0)*k;if(!hitWall(e.ex+Math.cos(a)*s,e.ey+Math.sin(a)*s,6)){e.ex+=Math.cos(a)*s;e.ey+=Math.sin(a)*s}}
+    else if(!e.aggro){e.wt-=k;if(e.wt<=0){e.wt=RI(60,180);e.tx=e.ox+R(-70,70);e.ty=e.oy+R(-50,50)}
+     if(e.tx!=null){const a=Math.atan2(e.ty-e.ey,e.tx-e.ex);if(Math.hypot(e.tx-e.ex,e.ty-e.ey)>4&&!hitWall(e.ex+Math.cos(a)*.6*k,e.ey+Math.sin(a)*.6*k,6)){e.ex+=Math.cos(a)*.6*k;e.ey+=Math.sin(a)*.6*k}}}
+    if(Math.hypot(G.px-e.ex,G.py-e.ey)<22){const foe=e.kind==='slime'?{name:'Glitchling',hp:34,maxhp:34,atk:6,xp:40,coins:15,art:ART.slime,pal:PALS.slime,eid:e.eid}:{name:'Wraithling',hp:46,maxhp:46,atk:9,xp:60,coins:22,art:ART.wraith,pal:PALS.wraithling,eid:e.eid};startCombat(foe);return}}}
+  if(e.t==='gate'){if(Math.hypot(G.px-e.ex,G.py-e.ey)<30){const msg=e.cond();if(msg&&t-G.toastGate>3500){G.toastGate=t;toast('🔒 Sealed Gate',msg,'bad')}}}
+  if(e.t==='boss'&&!bossDead(e)){e.bob=Math.sin(t/300)*4}
+ }
+ // fountain heal
+ if(G.geo==='village'&&tileAt(Math.floor(G.px/TS),Math.floor(G.py/TS+0))==='p'&&Math.hypot(G.px-13.5*TS,G.py-11.5*TS)<60&&S.hp<hpMax()){S.hp=Math.min(hpMax(),S.hp+0.3*k);if(Math.random()<.02)floatText(G.px,G.py-20,'+','heal');save();updHUD();}
+ // pending portal after boss
+ if(G.pendingPortal){const p=G.pendingPortal;if(Math.hypot(G.px-(p.x*TS+TS/2),G.py-(p.y*TS+TS/2))<26){const to=p.to;G.pendingPortal=null;loadGeo(to.geo,to.x,to.y);toast('🌀 Portal','You step through the shimmering gate.','pur');return}}
+ // camera
+ const m=mapOf();G.cam.x=clamp(G.px-cv.width/2,0,m.w*TS-cv.width);G.cam.y=clamp(G.py-cv.height/2,0,m.h*TS-cv.height);}
+function hitWall(px,py,r){for(const[ox,oy]of[[-r,-r],[r,-r],[-r,r],[r,r]]){if(solidTile(tileAt(Math.floor((px+ox)/TS),Math.floor((py+oy)/TS))))return true}return false}
+function usePortal(e){const msg=e.cond?e.cond():'';if(msg){if(performance.now()-G.toastGate>2500){G.toastGate=performance.now();toast('🔒 Sealed',msg,'bad')}return}
+ G.px=-999;const to=e.to;SFX.magic();loadGeo(to.geo,to.x,to.y);toast('🌀 '+GEO[to.geo].name,'You cross into a new land.','pur');}
+let FLOATS=[];function floatText(x,y,txt,cls){FLOATS.push({x,y,txt,cls,t:0})}
+
+function render(t){const m=mapOf(),P=TPAL[m.pal];cx.clearRect(0,0,cv.width,cv.height);cx.save();cx.translate(-Math.round(G.cam.x),-Math.round(G.cam.y));
+ const x0=Math.floor(G.cam.x/TS)-1,y0=Math.floor(G.cam.y/TS)-1,x1=x0+cv.width/TS+2,y1=y0+cv.height/TS+2;
+ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const ch=tileAt(x,y),px=x*TS,py=y*TS;
+  cx.fillStyle=((x+y)%2?P.grass:P.grass2);cx.fillRect(px,py,TS,TS);
+  const hsh=(x*7+y*13)%7;
+  if(ch==='*'){cx.fillStyle='#e8b4d8';cx.fillRect(px+10,py+12,4,4);cx.fillStyle='#f5c453';cx.fillRect(px+24,py+22,4,4);}
+  if(ch==='p'){cx.fillStyle=(hsh>3?P.path:P.path2);cx.fillRect(px,py,TS,TS);cx.fillStyle='rgba(0,0,0,.12)';cx.fillRect(px+ (hsh*3)%30,py+(hsh*5)%30,4,3);}
+  if(ch==='~'){cx.fillStyle=P.water;cx.fillRect(px,py,TS,TS);cx.fillStyle='rgba(255,255,255,.18)';const w=Math.sin(t/400+x+y)*4;cx.fillRect(px+6+w,py+8,12,3);cx.fillRect(px+16-w,py+24,10,3);}
+  if(ch==='b'){cx.fillStyle='#7a5230';cx.fillRect(px,py,TS,TS);cx.fillStyle='#5f3f24';for(let i=0;i<4;i++)cx.fillRect(px,py+i*10,TS,2);}
+  if(ch==='#'){cx.fillStyle=P.tree;cx.fillRect(px,py,TS,TS);if(m.pal==='canyon'||m.pal==='arena'){cx.fillStyle=P.canopy;cx.fillRect(px+8,py+8,24,24);cx.fillStyle='rgba(0,0,0,.3)';cx.fillRect(px+8,py+24,24,8);}else{cx.fillStyle='#5f3f24';cx.fillRect(px+16,py+22,8,14);cx.fillStyle=P.canopy;cx.beginPath();cx.arc(px+20,py+16,14,0,7);cx.fill();cx.fillStyle='rgba(0,0,0,.25)';cx.beginPath();cx.arc(px+24,py+20,10,0,7);cx.fill();}}
+  if(ch==='H'){cx.fillStyle=P.wall;cx.fillRect(px,py,TS,TS);cx.fillStyle='rgba(0,0,0,.2)';cx.fillRect(px,py+30,TS,10);if(tileAt(x,y-1)!=='H'){cx.fillStyle=P.roof;cx.beginPath();cx.moveTo(px-4,py);cx.lineTo(px+TS/2,py-18);cx.lineTo(px+TS+4,py);cx.fill();}}
+  if(ch==='F'){cx.fillStyle='#8a97ab';cx.beginPath();cx.arc(px+20,py+20,16,0,7);cx.fill();cx.fillStyle='#3aa7e0';cx.beginPath();cx.arc(px+20,py+20,10+Math.sin(t/250)*1.5,0,7);cx.fill();}
+  if(ch==='X'){const open=false;cx.fillStyle='#2b2f3d';cx.fillRect(px+4,py-16,32,56);cx.fillStyle=open?'#34d399':'#4a5169';for(let i=0;i<3;i++)cx.fillRect(px+9+i*9,py-12,4,48);cx.fillStyle='rgba(245,196,83,.7)';cx.fillRect(px+2,py-18,36,4);}
+ }
+ // entities sorted by y
+ const drawE=[];
+ for(const e of G.ents){if(e.t==='coin'&&!e.dead)drawE.push({y:e.ey,f:()=>{const sx=Math.abs(Math.sin(t/300+e.ex));cx.fillStyle='#f5c453';cx.beginPath();cx.ellipse(e.ex,e.ey,6*sx+1,7,0,0,7);cx.fill();cx.fillStyle='#b97f16';cx.beginPath();cx.ellipse(e.ex,e.ey,3*sx+.5,4,0,0,7);cx.fill();}});
+  if(e.t==='shard'){const ws=wsOf(e);if(!ws.shards.includes(e.id))drawE.push({y:e.ey,f:()=>{const bob=Math.sin(t/280+e.ex)*4;drawArt(cx,ART.shard,PALS.shard,e.ex-14,e.ey-16+bob,4);cx.fillStyle='rgba(192,132,252,.25)';cx.beginPath();cx.arc(e.ex,e.ey+bob,16,0,7);cx.fill();}})}
+  if(e.t==='chest')drawE.push({y:e.ey,f:()=>drawArt(cx,chestOpen(e)?ART.chestOpen:ART.chest,PALS.chest,e.ex-12,e.ey-10,4)});
+  if(e.t==='stone')drawE.push({y:e.ey,f:()=>{const lit=wsOf(e).stones.includes(e.id);drawArt(cx,ART.stone,lit?PALS.stoneLit:PALS.stone,e.ex-12,e.ey-24,4);if(lit){cx.fillStyle='rgba(52,211,153,.25)';cx.beginPath();cx.arc(e.ex,e.ey-8,18+Math.sin(t/200)*3,0,7);cx.fill();}}});
+  if(e.t==='sign')drawE.push({y:e.ey,f:()=>{cx.fillStyle='#7a5230';cx.fillRect(e.ex-2,e.ey-14,4,14);cx.fillStyle='#a07040';cx.fillRect(e.ex-12,e.ey-24,24,12)}});
+  if(e.t==='npc')drawE.push({y:e.ey,f:()=>{drawArt(cx,ART.villager,PALS[e.pal],e.ex-16,e.ey-32+Math.sin(t/500+e.ex)*2,4);if(Math.hypot(G.px-e.ex,G.py-e.ey)<140){cx.fillStyle='rgba(245,196,83,.9)';cx.font='bold 16px Manrope';cx.fillText('!',e.ex-3,e.ey-40);}}});
+  if(e.t==='gate')drawE.push({y:e.ey,f:()=>{const open=!e.cond();cx.fillStyle='#20242f';cx.fillRect(e.ex-20,e.ey-34,40,54);cx.fillStyle=open?'rgba(52,211,153,.8)':'#4a5169';for(let i=0;i<3;i++)cx.fillRect(e.ex-14+i*11,e.ey-30,5,46);if(open){cx.fillStyle='rgba(52,211,153,.2)';cx.beginPath();cx.arc(e.ex,e.ey-8,26+Math.sin(t/220)*4,0,7);cx.fill();}}});
+  if(e.t==='portal'||G.pendingPortal){}
+  if(e.t==='enemy'&&!e.dead&&!e.respawn)drawE.push({y:e.ey,f:()=>{const sq=1+Math.sin(t/180+e.ex)*.08;const a=e.kind==='slime'?ART.slime:ART.wraith,p=e.kind==='slime'?PALS.slime:PALS.wraithling;cx.save();cx.translate(e.ex,e.ey);cx.scale(1,sq);drawArt(cx,a,p,-16,-20,4);cx.restore();if(e.aggro){cx.fillStyle='#f87171';cx.font='bold 14px Manrope';cx.fillText('!',e.ex-3,e.ey-28);}}});
+  if(e.t==='boss'&&!bossDead(e))drawE.push({y:e.ey,f:()=>{const bob=Math.sin(t/300)*4;drawArt(cx,ART.colossus,PALS[e.pal],e.ex-35,e.ey-50+bob,7);cx.fillStyle='rgba(239,68,68,.15)';cx.beginPath();cx.arc(e.ex,e.ey-16+bob,52,0,7);cx.fill();cx.fillStyle='#f87171';cx.font='bold 12px Manrope';cx.textAlign='center';cx.fillText('☠ '+e.name,cx.canvas?e.ex:0,e.ey-58);cx.textAlign='left';}});
+ }
+ if(G.pendingPortal){const p=G.pendingPortal;drawE.push({y:p.y*TS,f:()=>{const px=p.x*TS+TS/2,py=p.y*TS+TS/2;cx.fillStyle='rgba(167,139,250,.3)';cx.beginPath();cx.arc(px,py,20+Math.sin(t/200)*4,0,7);cx.fill();cx.strokeStyle='#c4b5fd';cx.lineWidth=3;cx.beginPath();cx.arc(px,py,14,t/300,t/300+4);cx.stroke();}})}
+ // player
+ drawE.push({y:G.py,f:()=>{const bob=G.moving?Math.sin(t/70)*2:0;const pal=S.skin==='gold'?PALS.knight_gold:S.skin==='pur'?PALS.knight_pur:PALS.knight;
+  cx.fillStyle='rgba(0,0,0,.3)';cx.beginPath();cx.ellipse(G.px,G.py+16,12,5,0,0,7);cx.fill();
+  drawArt(cx,ART.knight,pal,G.px-16,G.py-16+bob,4);}});
+ drawE.sort((a,b)=>a.y-b.y).forEach(d=>d.f());
+ // floats
+ FLOATS=FLOATS.filter(f=>f.t<60);for(const f of FLOATS){f.t++;cx.fillStyle=f.cls==='heal'?'#34d399':'#f5c453';cx.font='bold 14px Manrope';cx.globalAlpha=1-f.t/60;cx.fillText(f.txt,f.x-14,f.y-f.t*.8);cx.globalAlpha=1;}
+ // interact bubble
+ const it=nearestInteract();if(it){cx.fillStyle='rgba(52,211,153,.95)';cx.beginPath();cx.arc(it.e.ex,it.e.ey-46,11,0,7);cx.fill();cx.fillStyle='#04120c';cx.font='bold 13px Manrope';cx.fillText('E',it.e.ex-4,it.e.ey-42);}
+ // pending portal label
+ cx.restore();
+ // vignette
+ const vg=cx.createRadialGradient(cv.width/2,cv.height/2,cv.height/2.6,cv.width/2,cv.height/2,cv.height);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.55)');cx.fillStyle=vg;cx.fillRect(0,0,cv.width,cv.height);}
+function nearestInteract(){let best=null,bd=56;for(const e of G.ents){if(!['npc','stone','chest','boss','sign'].includes(e.t))continue;
+  if(e.t==='chest'&&chestOpen(e))continue;if(e.t==='stone'&&wsOf(e).stones.includes(e.id))continue;if(e.t==='boss'&&bossDead(e))continue;
+  const d=Math.hypot(G.px-e.ex,G.py-e.ey);if(d<bd){bd=d;best={e}}}return best}
+function interact(){const it=nearestInteract();if(!it||$('dlgbox').classList.contains('on'))return;const e=it.e;SFX.open();
+ if(e.t==='npc')npcTalk(e.id);
+ if(e.t==='sign')openDialog([{who:'Wooden Sign',icon:'🪧',text:e.text,chs:[['Step away',null]]}]);
+ if(e.t==='stone'){const ws=wsOf(e);if(ws.stones.includes(e.id))return;openCoding(e.pid,{stone:e.id,onSuccess:()=>{ws.stones.push(e.id);save();SFX.magic();floatText(e.ex,e.ey-30,'SEAL RESTORED');
+   if(e.step){if(G.geo.startsWith('arrays'))qStep('q_grove',e.step);if(G.geo.startsWith('strings'))qStep('q_strings',e.step);
+    if(e.step==='st1'){if(!S.quests.q_grove||!S.quests.q_grove.active)activateQuest('q_grove');}
+    if(e.step==='sts1'){if(!S.quests.q_strings||!S.quests.q_strings.active)activateQuest('q_strings');}}
+   toast('🪨 Runestone restored','The seal glows emerald. ('+ws.stones.length+' total)','em');}});}
+ if(e.t==='chest'){const ws=wsOf(e);ws.chests.push(e.id);const l=e.loot||{};if(l.coins)gainCoins(l.coins);(l.items||[]).forEach(i=>addItem(i));SFX.coin();confetti();
+  openDialog([{who:'Treasure Chest',icon:'🧰',text:`Inside: ${l.coins?l.coins+' coins':''}${l.items&&l.items.length?' '+(l.items.map(i=>ITEMS[i].icon+' '+ITEMS[i].name).join(', ')):''}. The kingdom thanks its hero.`,chs:[['Take it gladly',null]]}]);}
+ if(e.t==='boss'){openDialog([{who:e.name,icon:'☠️',text:e.id==='boss_arrays'?'“I AM THE SUM OF EVERY COPY. SOLVE ME OR BE DELETED.”':'“Reee-arrange my letters if you daaare, mortal…”',chs:[['⚔️ Fight!',()=>startCombat({name:e.name,hp:e.hp,maxhp:e.hp,atk:e.atk,xp:e.xp,coins:e.coins,problem:e.problem,art:ART.colossus,pal:PALS[e.pal],boss:true,eid:e.eid})],['Retreat for now',null]]}]);}}
+
+/* ---------------- NPCs / dialog ---------------- */
+function openDialog(nodes,ai){let i=0;const box=$('dlgbox');let typing=null;
+ function line(){const n=nodes[i];box.classList.add('on');$('dlg-who').textContent=n.who;$('dlg-ic').textContent=n.icon||'💬';$('dlg-chs').innerHTML='';$('dlg-cont').style.display='none';
+  const tx=$('dlg-txt');tx.innerHTML='';let c=0;const raw=n.text;clearInterval(typing);
+  typing=setInterval(()=>{c+=2;tx.innerHTML=raw.slice(0,c);if(c>=raw.length){clearInterval(typing);typing=null;$('dlg-cont').style.display='block';
+   if(n.chs&&n.chs.length>1){$('dlg-cont').style.display='none';$('dlg-chs').innerHTML=n.chs.map((ch,ci)=>`<button onclick="dlgChoose(${ci})">${esc(ch[0])}</button>`).join('');}}},18);
+  window._dlgNext=()=>{if(typing){clearInterval(typing);typing=null;tx.innerHTML=raw;$('dlg-cont').style.display='block';if(n.chs&&n.chs.length>1){$('dlg-cont').style.display='none';$('dlg-chs').innerHTML=n.chs.map((ch,ci)=>`<button onclick="dlgChoose(${ci})">${esc(ch[0])}</button>`).join('');}return}
+   if(n.chs&&n.chs.length>1)return;
+   const nxt=n.chs&&n.chs[0]?n.chs[0][1]:n.next;
+   if(n.next&&nodes[i+1]){i++;line();return}
+   if(typeof nxt==='number'&&nodes[nxt]){i=nxt;line();return}
+   if(typeof nxt==='function'){dlgHide();nxt();return}
+   dlgHide();};
+  window.dlgChoose=ci=>{const act=nodes[i].chs[ci][1];dlgHide();if(typeof act==='function')act();};}
+ line();
+ const h=e=>{if(e.key==='e'||e.key==='E'||e.key==='Enter'){e.stopPropagation();if(window._dlgNext)window._dlgNext()}};
+ box._h=h;document.addEventListener('keydown',h,true);}
+function dlgHide(){const box=$('dlgbox');box.classList.remove('on');if(box._h)document.removeEventListener('keydown',box._h,true);}
+function npcTalk(id){
+ if(id==='sage'){const q=qState('q_first');
+  if(!q.active)return activateQuest('q_first'),openDialog([
+   {who:'Old Sage',icon:'🧙‍♂️',text:'Halt, wanderer… no. That Spark in your eyes says otherwise. An <b>Adventurer</b>, at last.'},
+   {who:'Old Sage',icon:'🧙‍♂️',text:'I am the Old Sage. The <b>Null King</b> has shattered the Great Algorithms, and darkness seeps into every realm of Nexaura.',chs:[['Tell me what to do.',1],['Who is the Null King?',3]]},
+   {who:'Old Sage',icon:'🧙‍♂️',text:'Your journey begins at the <b>Runestone of Beginnings</b>, north of the fountain. Solve its trial, and the eastern gate to the Forest of Arrays will open.',next:1},
+   {who:'Old Sage',icon:'🧙‍♂️',text:'He is the absence of meaning itself — a king of dereferenced pointers and infinite loops. Only those who think in <b>algorithms</b> can unmake him. You will learn. I promise you that.',next:1},
+   {who:'Old Sage',icon:'🧙‍♂️',text:'Controls, child: <b>WASD or arrows</b> to walk, <b>E</b> to speak and to act. Now go — the Runestone hums for you.',chs:[['I am ready.',null]]}]);
+  if(!q.done.solve_echo)return openDialog([{who:'Old Sage',icon:'🧙‍♂️',text:'The Runestone of Beginnings waits north of the fountain. Touch it, and answer with code.',chs:[['On my way.',null]]}]);
+  if(!q.done.return_sage)return qStep('q_first','return_sage'),openDialog([
+   {who:'Old Sage',icon:'🧙‍♂️',text:'You solved it. The Spark grows into a flame! Take this — my old blade.'},
+   {who:'Old Sage',icon:'🧙‍♂️',text:'⚔️ <b>Rusty Sword equipped.</b> In the Forest of Arrays you will meet the <b>Wizard Compiler</b> — ask the Oracle within any trial for hints when you falter.',chs:[['To the forest!',null]]}]);
+  return openDialog([{who:'Old Sage',icon:'🧙‍♂️',text:'The eastern realm awaits, Adventurer. And if you see my old friend the Blacksmith… tell him he still owes me a horseshoe.',chs:[['Farewell, Sage.',null]]}]);}
+ if(id==='kid'){const q=qState('q_shards');
+  if(!q.active)return activateQuest('q_shards'),openDialog([{who:'Village Child',icon:'🧒',text:'You! Adventurer! The wind stole my <b>three Mana Shards</b> 💠 — one is still somewhere in this village, and the others flew into the darker realms! Bring them back, PLEASE? I\u2019ll give you my greatest treasure!',chs:[['I\u2019ll find them.',null]]}]);
+  const n=S.worlds.village.shards.length+S.worlds.arrays.shards.length+S.worlds.strings.shards.length;
+  return openDialog([{who:'Village Child',icon:'🧒',text:n>=3?'YOU GOT THEM ALL!! The Rune of O(n) is yours — it makes scary loops feel small. Thank you thank you!!':'You found '+n+' of 3! The last ones sparkle in the far realms — keep exploring!',chs:[['Keep searching.',null]]}]);}
+ if(id==='merchant'||id==='merchant2')return openShop();
+ if(id==='smith')return openForge();
+ if(id==='wizard')return openDialog([
+  {who:'Wizard Compiler',icon:'🧙',text:'I am the Wizard Compiler. I translate chaos into order, warnings into wisdom.'},
+  {who:'Wizard Compiler',icon:'🧙',text:'Each Runestone trial carries an <b>AI Oracle</b>. It offers hints, forensics for your failures, and can even forge fresh practice trials. The first hint is always free.',chs:[['How do I beat the Colossus?',1],['Noted, Wizard.',null]]},
+  {who:'Wizard Compiler',icon:'🧙',text:'Restore all three Runestones, then face him. His weakness? <b>Boyer–Moore\u2019s vote.</b> Remember: the majority can never be fully cancelled.',chs:[['I\u2019ll remember.',null]]}]);
+ if(id==='herald')return openDialog([
+  {who:'King\u2019s Herald',icon:'📯',text:'Hail, Runebearer! The <b>Algorithm King</b> watches from his Castle — but the road passes through the Palindrome Wraith\u2019s hollow.'},
+  {who:'King\u2019s Herald',icon:'📯',text:'Solve the valley\u2019s two Runestones to thin the veil, then challenge the Wraith. The King rewards those who restore his words.',chs:[['For the King!',null]]}]);}
+function openShop(){openDialog([{who:'Merchant',icon:'🧑‍🌾',text:'Potions, cloaks, and conversation! What catches your eye, hero?',chs:[['Show me your wares.',()=>{
+  const mk=(id,cost)=>`<div class="qrow"><span>${ITEMS[id].icon} ${ITEMS[id].name} <span style="color:var(--tx3)">— ${ITEMS[id].desc.slice(0,40)}…</span></span><button class="btn btn-gold btn-sm" onclick="buy('${id}',${cost})">🪙 ${cost}</button></div>`;
+  openModal(`<div class="mhead"><h3>🛒 Merchant\u2019s Wares</h3><span class="coin">🪙 ${S.coins}</span><button class="mx" onclick="closeTop()">✕</button></div><div class="mbody">
+   ${mk('potion',25)}${mk('compiler_staff',120)}${mk('cloak_gold',150)}${mk('cloak_pur',150)}
+   <p style="color:var(--tx3);font-size:12px;margin-top:12px">Cloaks are equipped from Settings→ no — they recolor you instantly. Fashion is the true endgame.</p></div>`,'540px');}],['Just passing through.',null]]}]);}
+function buy(id,cost){if(S.coins<cost)return toast('🪙 Not enough coins','The merchant smiles sympathetically.','bad');gainCoins(-cost);addItem(id);SFX.coin();
+ if(id.startsWith('cloak')){S.skin=id==='cloak_gold'?'gold':'pur';if(!S.skins.includes(id))S.skins.push(id);save();}
+ toast('🛒 Purchased',ITEMS[id].name+' added to your pack.','gold');closeTop();openShopRefresh();}
+function openShopRefresh(){/* shop modal stays; coins chip auto-updates via updHUD */}
+function openForge(){openDialog([{who:'Blacksmith',icon:'⚒️',text:'Hmph. Your blade could be sharper. I hone weapons for 60 coins — three times, no more. And I\u2019ve an Emerald Blade for those who haven\u2019t earned one the hard way.',chs:[['Hone my weapon (60 🪙)',()=>{
+  if(S.forgeHone>=3)return toast('⚒️ Fully honed','The edge sings already.','');
+  if(S.coins<60)return toast('🪙 Not enough coins','','bad');
+  if(!S.equip.weapon)return toast('⚒️ No weapon equipped','Equip one from your Inventory.','bad');
+  gainCoins(-60);S.forgeHone++;save();SFX.hit();toast('⚒️ Honed!','Weapon damage +3 (total honing +'+S.forgeHone*3+')','gold');}],['Buy Emerald Blade (200 🪙)',()=>{if(S.coins<200)return toast('🪙 Not enough coins','','bad');gainCoins(-200);addItem('emerald_blade');S.equip.weapon='emerald_blade';save();toast('⚔️ Emerald Blade!','Equipped. +14 dmg.','gold');}],['Maybe later.',null]]}]);}
+
+/* ---------------- boot ---------------- */
+(function boot(){
+ // landing worlds preview
+ $('wprev').innerHTML=WORLDS.map((w,i)=>`<div class="glass wcard"><div class="wbar" style="background:linear-gradient(140deg,${w.grad[0]},${w.grad[1]}55)">${w.icon}</div><h3>${w.name}</h3><p style="color:var(--tx3);font-size:12px">${w.diff} · Boss: ${w.boss}</p>${i>2?'<div class="lockov"><span style="font-size:24px">🔒</span>Chapter '+(i<3?'I':'II')+'</div>':''}</div>`).join('');
+ // resume session
+ const ses=localStorage.getItem('nex_session');
+ if(ses){SESSION=ses;if(loadSave())enterApp();}
+ // embers
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches){for(let i=0;i<14;i++){const e=document.createElement('div');e.className='ember anim';e.style.cssText=`left:${R(0,100)}vw;top:${R(60,110)}vh;animation-duration:${R(6,14)}s;animation-delay:${R(0,8)}s`;document.body.appendChild(e);}}
+ // first gesture starts music
+ addEventListener('pointerdown',()=>{if(S&&S.settings.music&&$('scr-app').classList.contains('on'))startMusic();},{once:true});
+})();
+</script>
+</body>
+</html>
