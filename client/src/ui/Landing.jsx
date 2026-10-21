@@ -13,7 +13,13 @@ export default function Landing() {
       <main className="nex-landing-main" style={{ '--accent': '#8b5cf6' }}>
         <h1 className="nex-landing-title">The Missing Notebook</h1>
         <p className="nex-landing-tagline">
-          The Algorithm Kingdom's influence spreads through every realm. Memories are being rewritten, and Nox of the Lower Post has vanished into the Array Forest. As the Cipher Detective, you must walk the scene, break their accounts, and reconstruct the order they tried to erase.
+          A stolen research notebook. A trail of null pointers and infinite
+          loops running through the Algorithm Heart. You are Rin the Detective —
+          the only one the Heart still trusts with a true order. Start in
+          Array Forest and follow the evidence through the other five realms of
+          the kingdom, one chain at a time. Each realm's challenge is graded by
+          the real Java judge: wrong answers are red, accepted answers close the
+          realm and unlock the next.
         </p>
         <div className="nex-landing-cta">
           <button

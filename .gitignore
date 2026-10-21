@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# build output
+client/dist/
+server/dist/
+
+# logs
+*.log
+npm-debug.log*
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.local
+
+# local MongoDB data (`npm run db`)
+.data/
+
+# end-to-end walkthrough screenshots
+test/shots/
+client/test/shots/
+
+# local-only holding folder: the retired AI-powered DSA platform + recovery archive.
+# Never pushed to GitHub.
+nexaura zero/
