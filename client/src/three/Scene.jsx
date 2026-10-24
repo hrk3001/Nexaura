@@ -61,13 +61,16 @@ function InvestigationSpot({ position, _label, enabled = true }) {
       <ambientLight intensity={0.5} />
     </group>
   )
-}
-
-export default function Scene({ world, _caseState }) {
-  const { env } = useThree()
+}function PlayerRigProps({ world }) {
+  const _env = useThree()
   const ref = useRef(null)
 
-  // Array Forest specific environment
+  useFrame(() => {
+    if (ref.current) {
+      ref.current.rotation.y += 0.001
+    }
+  })
+
   const _defaultEnv = {
     background: '#05070f',
     fog: '#0a1122',
@@ -76,11 +79,21 @@ export default function Scene({ world, _caseState }) {
     hemi: '#34d399',
   }
 
-  useFrame(() => {
-    if (ref.current) {
-      ref.current.rotation.y += 0.001
-    }
-  })
+  return (
+    <group ref={ref}>
+      <Detective world={world} />
+    </group>
+  )
+}
+
+export default function Scene({ world, _caseState }) {
+  const _defaultEnv = {
+    background: '#05070f',
+    fog: '#0a1122',
+    ground: '#0a1122',
+    sun: '#f5c453',
+    hemi: '#34d399',
+  }
 
   return (
     <Canvas
@@ -92,11 +105,11 @@ export default function Scene({ world, _caseState }) {
       onWheel={zoomCamera}
     >
       <ambientLight intensity={0.34} />
-      <hemisphereLight args={[env.hemi, env.ground, 0.85]} />
+      <hemisphereLight args={[_defaultEnv.hemi, _defaultEnv.ground, 0.85]} />
       <directionalLight
         position={[10, 16, 8]}
         intensity={1.5}
-        color={env.sun}
+        color={_defaultEnv.sun}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-22}
@@ -110,7 +123,7 @@ export default function Scene({ world, _caseState }) {
       <Suspense fallback={null}>
         <WorldEnvironment world={world} />
         <Detective world={world} />
-      </Suspense>
+</Suspense>
 
       {/* Forest trees in a grid */}
       {Array.from({ length: 20 }).map((_, i) => (
@@ -130,6 +143,8 @@ export default function Scene({ world, _caseState }) {
       <Evidence position={[-8, 1, 0]} type="laptop" />
       <Evidence position={[8, 1, 0]} type="record" />
       <Evidence position={[0, 1, -8]} type="badge" />
+
+      <PlayerRigProps world={world} />
 
       <OrbitControls
         enablePan={false}

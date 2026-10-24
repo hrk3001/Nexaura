@@ -1,141 +1,134 @@
-
 import { useGame } from '../game/store.js'
-import { getAllWorlds } from '../game/worlds.js'
+import { CASE, getAllWorlds } from '../game/worlds.js'
+import NexHeader from './NexHeader.jsx'
 
-const worldIcons = {
-  arrays: '🌲',
-  linked: '🌿',
-  stack: '⚡',
-  tree: '👑',
-  graph: '🌐',
-  dp: '🔮',
-}
+const PEOPLE = [
+  { name: CASE.detective, role: 'Investigation assistant', initial: 'IRI' },
+  { name: CASE.owner, role: 'Notebook owner', initial: 'M' },
+  { name: CASE.organiser, role: 'Fair organiser', initial: 'R' },
+  { name: CASE.partner, role: 'Lab partner', initial: 'D' },
+]
 
 export default function WorldMap() {
   const selectWorld = useGame((s) => s.selectWorld)
   const worlds = Object.values(getAllWorlds())
+  const cleared = worlds.filter((world) => world._completed === true).length
+  const open = worlds.filter((world) => world._unlocked && !world._completed).length
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      padding: '64px 24px',
-      background: 'radial-gradient(ellipse at top, #17102d, #070913 65%)',
-      color: '#e8eaf6',
-      fontFamily: 'Oxanium, sans-serif',
-    }}>
-      <header style={{
-        maxWidth: 1100,
-        margin: '0 auto 42px',
-        textAlign: 'center',
-      }}>
-        <p style={{
-          color: '#a78bfa',
-          letterSpacing: 4,
-          fontSize: 12,
-        }}>
-          THE ALGORITHM KINGDOM
-        </p>
+    <div className="nex-root nex-map-page" data-testid="map">
+      <NexHeader
+        right={(
+          <>
+            <span className="nex-case-tag">Case file 001</span>
+            <span className="nex-status">
+              <span className="nex-status-dot" aria-hidden="true" />
+              Investigation active
+            </span>
+          </>
+        )}
+      />
 
-        <h1 style={{
-          fontFamily: 'MedievalSharp, cursive',
-          fontSize: 'clamp(34px, 6vw, 58px)',
-          margin: '16px 0',
-        }}>
-          Choose Your Realm
-        </h1>
+      <main className="nex-map-shell">
+        <header className="nex-map-head">
+          <div>
+            <p className="nx-kicker">Nexaura / Case file 001</p>
+            <h1 className="nex-map-title">Case Map</h1>
+            <p className="nex-map-subtitle">
+              {CASE.location}
+              <span>·</span>
+              Judging at {CASE.deadline}
+            </p>
+            <p className="nex-map-brief">
+              {CASE.owner}'s notebook vanished from the fair office. Six stops hold the
+              records that will lead you to it — and to the person who took it.
+            </p>
+          </div>
 
-        <p style={{ color: '#a8acc5', lineHeight: 1.7 }}>
-          Six worlds. Six algorithmic mysteries. Your investigation begins here.
-        </p>
-      </header>
+          <aside className="nex-map-progress-card" aria-label="Case progress">
+            <div className="nex-progress-head">
+              <span>Case progress</span>
+              <strong>{cleared} / {worlds.length}</strong>
+            </div>
+            <div className="nex-progress-track" aria-hidden="true">
+              {worlds.map((world, i) => (
+                <span
+                  key={world.id}
+                  className={`nex-progress-seg${i < cleared ? ' is-on' : ''}`}
+                />
+              ))}
+            </div>
+            <p className="nex-progress-note">
+              {cleared === worlds.length
+                ? 'All six fair stops cleared. The timeline is complete.'
+                : open > 0
+                  ? `${open} stop${open === 1 ? '' : 's'} open · ${worlds.length - cleared} record${worlds.length - cleared === 1 ? '' : 's'} remaining`
+                  : 'Open the next fair stop to continue the investigation.'}
+            </p>
+          </aside>
+        </header>
 
-      <section style={{
-        maxWidth: 1100,
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: 20,
-      }}>
-        {worlds.map((world, index) => {
-          const locked = !world.unlocked
-          const colors = world.gradient || ['#8b5cf6', '#6d28d9']
-
-          return (
-            <button
-              key={world.id}
-              disabled={locked}
-              onClick={() => selectWorld(world.id)}
-              style={{
-                textAlign: 'left',
-                padding: 24,
-                minHeight: 220,
-                borderRadius: 16,
-                border: `1px solid ${
-                  locked ? 'rgba(148,163,184,.12)' : `${colors[0]}88`
-                }`,
-                background: locked
-                  ? 'rgba(15,18,32,.65)'
-                  : 'linear-gradient(145deg, rgba(30,27,55,.95), rgba(12,15,30,.98))',
-                color: locked ? '#69718a' : '#f3f0ff',
-                cursor: locked ? 'not-allowed' : 'pointer',
-                opacity: locked ? 0.6 : 1,
-                transition: 'transform .2s, border-color .2s',
-                fontFamily: 'inherit',
-              }}
-              onMouseEnter={(e) => {
-                if (!locked) e.currentTarget.style.transform = 'translateY(-5px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-            >
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 20,
-              }}>
-                <span style={{ fontSize: 34 }}>
-                  {worldIcons[world.id] || '✨'}
-                </span>
-
-                <span style={{
-                  fontSize: 11,
-                  letterSpacing: 1,
-                  color: locked ? '#7d8499' : colors[0],
-                }}>
-                  {locked ? '🔒 LOCKED' : world.completed ? '✓ COMPLETED' : 'AVAILABLE'}
-                </span>
+        <section className="nex-people" aria-label="People on the case">
+          {PEOPLE.map((person) => (
+            <article className="nex-person" key={person.name}>
+              <span className="nex-person-avatar" aria-hidden="true">{person.initial}</span>
+              <div>
+                <div className="nex-person-name">{person.name}</div>
+                <div className="nex-person-role">{person.role}</div>
               </div>
+            </article>
+          ))}
+        </section>
 
-              <h2 style={{
-                fontSize: 20,
-                marginBottom: 10,
-                color: locked ? '#9298aa' : colors[0],
-              }}>
-                {world.name}
-              </h2>
+        <section className="nex-map-grid" aria-label="Fair stops">
+          {worlds.map((world, index) => {
+            const locked = !world._unlocked
+            const isCleared = world._completed === true
 
-              <p style={{
-                fontSize: 13,
-                lineHeight: 1.7,
-                color: locked ? '#737b91' : '#b7bdd3',
-              }}>
-                {world.description}
-              </p>
+            return (
+              <button
+                key={world.id}
+                type="button"
+                disabled={locked}
+                onClick={() => selectWorld(world.id)}
+                className={`nex-map-card${locked ? ' is-locked' : ''}${isCleared ? ' is-cleared' : ''}`}
+                style={{ '--card-index': index }}
+              >
+                <div className="nex-map-card-top">
+                  <span className="nex-map-index">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="nex-map-icon" aria-hidden="true">{world.icon || '✦'}</span>
+                  <span className={`nex-map-status${isCleared ? ' is-cleared' : locked ? ' is-locked' : ''}`}>
+                    {locked ? 'SEALED' : isCleared ? 'CLEARED' : 'OPEN'}
+                  </span>
+                </div>
 
-              <p style={{
-                marginTop: 18,
-                fontSize: 11,
-                letterSpacing: 1,
-                color: '#9ca3bd',
-              }}>
-                {locked ? 'Complete previous investigations to unlock' : `BOSS: ${world.boss}`}
-              </p>
-            </button>
-          )
-        })}
-      </section>
-    </main>
+                <h2 className="nex-map-card-title">{world.name}</h2>
+                <p className="nex-map-subject">{world.subject}</p>
+                <p className="nex-map-description">{world.description}</p>
+
+                <div className="nex-map-records">
+                  <strong>Records</strong>
+                  {world.introSpots.map(([label]) => label).join(' · ')}
+                </div>
+
+                <p className={`nex-map-note${locked ? ' is-locked' : isCleared ? ' is-lead' : ''}`}>
+                  {locked
+                    ? 'Clear the previous fair stop to unlock'
+                    : isCleared
+                      ? `LEAD LOGGED: ${world.clue}`
+                      : `YOUR TASK: ${world.objective}`}
+                </p>
+              </button>
+            )
+          })}
+        </section>
+
+        <footer className="nex-map-footer">
+          <span>Evidence board · six fair stops</span>
+          <span>Case 001 · {CASE.location}</span>
+          <span>{CASE.detective} · investigation assistant</span>
+        </footer>
+      </main>
+    </div>
   )
 }

@@ -1,160 +1,284 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useGame } from './game/store.js'
-import Landing from './ui/Landing.jsx'
 import Intro from './ui/Intro.jsx'
+import Landing from './ui/Landing.jsx'
 import WorldMap from './ui/WorldMap.jsx'
 import JavaChallenge from './ui/JavaChallenge.jsx'
 import Dialogue from './ui/Dialogue.jsx'
 import Scene from './three/Scene.jsx'
-import worlds from './game/worlds.js'
+import worlds, { CASE } from './game/worlds.js'
 
 export default function App() {
   const view = useGame((state) => state.view)
   const init = useGame((state) => state.init)
   const worldId = useGame((state) => state.worldId)
   const caseState = useGame((state) => state.caseState)
+  const discoverEvidence = useGame((state) => state.discoverEvidence)
+
+  const isArray = worldId === 'arrays'
+  const [challengeMode, setChallengeMode] = useState(false)
+  const [nearbyId, setNearbyId] = useState(null)
+  const [activeEvidenceId, setActiveEvidenceId] = useState(null)
+  const explore = isArray && !challengeMode
 
   useEffect(() => {
     init()
   }, [init])
 
+  useEffect(() => {
+    setChallengeMode(false)
+    setNearbyId(null)
+    setActiveEvidenceId(null)
+  }, [worldId])
+
   if (view === 'loading') {
     return (
-      <main style={{ padding: 40 }} data-testid="loading">
-        Entering the Algorithm Kingdom...
+      <main className="nex-root nex-loading" data-testid="loading">
+        Opening the case file…
       </main>
     )
   }
 
   if (view === 'landing') return <Landing />
-
   if (view === 'intro') return <Intro />
 
   if (view === 'map') {
     return (
-      <main>
+      <>
         <WorldMap />
         <Dialogue />
-      </main>
+      </>
     )
   }
 
   if (view === 'game') {
     const { closed, total } = useGame.getState().progress()
     const world = worldId ? (worlds[worldId] || null) : null
+    const records = world?.introSpots ?? []
+    const evidence = isArray ? (world?.evidence ?? []) : []
+    const journal = caseState?.journal ?? []
+    const evidenceFound = caseState?.evidence?.length ?? 0
+    const nearby = evidence.find((entry) => entry.id === nearbyId) || null
+    const activeEvidence = evidence.find((entry) => entry.id === activeEvidenceId) || null
+
+    const openEvidence = (id) => {
+      const entry = evidence.find((item) => item.id === id)
+      if (!entry) return
+      document.activeElement?.blur?.()
+      setActiveEvidenceId(entry.id)
+      discoverEvidence(entry)
+    }
+
+    const closeEvidence = () => setActiveEvidenceId(null)
+
+    const toggleMode = () => {
+      document.activeElement?.blur?.()
+      setActiveEvidenceId(null)
+      setNearbyId(null)
+      setChallengeMode((current) => !current)
+    }
+
     return (
       <main
+        className={`nex-game${explore ? ' is-exploring' : ''}`}
         data-testid="game"
-        style={{
-          minHeight: '100vh',
-          position: 'relative',
-          background: 'var(--bg0)',
-          color: 'var(--tx)',
-        }}
+        data-evidence={evidence.map((item) => `${item.id}:${item.position.join(',')}`).join('|')}
       >
-        <Scene worldId={worldId} caseState={caseState} />
-        <header
-          style={{
-            position: 'absolute',
-            top: 14,
-            left: 16,
-            right: 16,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            pointerEvents: 'none',
-            zIndex: 3,
-            color: 'var(--tx)',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <Scene
+          worldId={worldId}
+          interactive={explore}
+          evidence={evidence}
+          nearbyId={nearbyId}
+          onNearby={setNearbyId}
+          onInspect={openEvidence}
+          paused={!!activeEvidenceId}
+        />
+        <div className="nex-game-scrim" aria-hidden="true" />
+
+        <header className="nex-hud">
+          <div className="nex-hud-left">
             <button
               onClick={() => useGame.getState().goMap()}
-              className="nex-btn"
-              style={{
-                padding: '8px 14px',
-                border: '1px solid rgba(148,170,255,.2)',
-                background: 'rgba(6,10,22,.75)',
-                borderRadius: 12,
-                color: 'var(--tx)',
-                fontSize: 13,
-                fontWeight: 700,
-                pointerEvents: 'auto',
-              }}
+              className="nex-btn nex-ghost small"
             >
               ← Case map
             </button>
-            <div className="hudchip" style={{ pointerEvents: 'auto' }}>
-              Realms closed <strong>{closed}</strong>/{total}
+            {isArray && (
+              <button
+                onClick={toggleMode}
+                className="nex-btn nex-ghost small nex-mode-btn"
+              >
+                {explore ? 'Open Java challenge' : '← Explore the fair'}
+              </button>
+            )}
+            <div className="nex-hud-case">
+              <span>Nexaura / Case 001</span>
+              <strong>{CASE.title}</strong>
             </div>
           </div>
 
-          <div
-            className="hudchip"
-            style={{ pointerEvents: 'auto', textAlign: 'right' }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-              }}
-            >
-              Crown
-            </span>
-            <strong style={{ color: 'var(--gold)' }}>
-              {(caseState?.coins ?? 0).toLocaleString()}
-            </strong>
-            <br />
-            <span
-              style={{
-                fontSize: 11,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                color: 'var(--em)',
-              }}
-            >
-              XP
-            </span>
-            <strong style={{ color: 'var(--em)' }}>
-              {(caseState?.xp ?? 0).toLocaleString()}
-            </strong>
+          <div className="nex-hud-center">
+            <p className="nx-kicker">Current stop</p>
+            <strong>{world?.name || 'Investigation'}</strong>
+            <span>{world?.subject || 'Maple Park Science Fair'}</span>
+          </div>
+
+          <div className="nex-hud-stats" aria-label="Investigation status">
+            <div className="nex-stat">
+              <span>Stops cleared</span>
+              <strong>{closed}<em>/{total}</em></strong>
+            </div>
+            <div className="nex-stat is-coins">
+              <span>Coins</span>
+              <strong>{(caseState?.coins ?? 0).toLocaleString()}</strong>
+            </div>
+            <div className="nex-stat is-xp">
+              <span>XP</span>
+              <strong>{(caseState?.xp ?? 0).toLocaleString()}</strong>
+            </div>
           </div>
         </header>
 
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 18,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontFamily: 'var(--disp)',
-            color: 'rgba(232,236,248,.75)',
-            letterSpacing: 4,
-            fontSize: 14,
-            textTransform: 'uppercase',
-            textShadow: '0 2px 8px #000',
-            zIndex: 3,
-            pointerEvents: 'none',
-          }}
-          data-testid="game-world-name"
-        >
-          {world ? world.name : worldId}
+        <div className="nex-game-body">
+          <aside className="nex-chapter-rail" aria-label="Chapter briefing">
+            <p className="nx-kicker">Chapter briefing</p>
+            <h2 className="nex-chapter-title">{world?.name || 'Investigation'}</h2>
+            <p className="nex-chapter-subject">{world?.subject || 'Maple Park Science Fair'}</p>
+
+            <div className="nex-rail-section">
+              <span>Objective</span>
+              <p>{world?.objective || 'Select a fair stop from the case map.'}</p>
+            </div>
+
+            <div className="nex-rail-section">
+              <span>Records</span>
+              <ul className="nex-rail-records">
+                {records.map(([label]) => (
+                  <li key={label}>{label}</li>
+                ))}
+              </ul>
+            </div>
+
+            {isArray && (
+              <div className="nex-rail-section nex-journal">
+                <span>Case journal</span>
+                <p className="nex-journal-meta">
+                  {evidenceFound} / {evidence.length} evidence logged
+                </p>
+                {journal.length > 0 ? (
+                  <ul className="nex-journal-list">
+                    {journal.map((item) => (
+                      <li key={item.id}>
+                        <strong>{item.title}</strong>
+                        <p>{item.clue}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="nex-journal-empty">
+                    Walk the fair and inspect glowing evidence with <kbd>E</kbd>.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="nex-rail-clue">
+              <span>{world?._completed ? 'Lead logged' : 'Case note'}</span>
+              <p>
+                {world?._completed
+                  ? world.clue
+                  : 'Solve the exhibit record to log this stop\'s lead.'}
+              </p>
+            </div>
+
+            <div className="nex-rail-status">
+              <span>Stop status</span>
+              <strong className={world?._completed ? 'is-cleared' : ''}>
+                {world?._completed ? 'CLEARED' : 'IN PROGRESS'}
+              </strong>
+            </div>
+          </aside>
+
+          <section
+            className={`nex-challenge-shell${explore ? ' is-hidden' : ''}`}
+            aria-label="Java challenge"
+            aria-hidden={explore || undefined}
+          >
+            <JavaChallenge />
+          </section>
         </div>
 
-        <JavaChallenge />
+        {explore && (
+          <div className="nex-explore-ui">
+            <div className="nex-explore-legend" aria-label="Exploration controls">
+              <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+              <span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> move</span>
+              <span><kbd>E</kbd> inspect evidence</span>
+            </div>
+
+            {nearby && !activeEvidence ? (
+              <div className="nex-interact-prompt" role="status">
+                <span>Evidence nearby</span>
+                <strong>{nearby.title}</strong>
+                <em>Press <kbd>E</kbd> to inspect</em>
+              </div>
+            ) : !activeEvidence ? (
+              <p className="nex-explore-hint">
+                Walk to a glowing evidence marker and press <kbd>E</kbd>.
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        {explore && activeEvidence && (
+          <section
+            className="nex-evidence-panel"
+            role="dialog"
+            aria-label={`Evidence: ${activeEvidence.title}`}
+          >
+            <header className="nex-evidence-head">
+              <span>Evidence logged</span>
+              <button
+                type="button"
+                className="nex-evidence-close"
+                onClick={closeEvidence}
+                aria-label="Close evidence"
+              >
+                ×
+              </button>
+            </header>
+            <h2 className="nex-evidence-title">{activeEvidence.title}</h2>
+            <p className="nex-evidence-location">{activeEvidence.location}</p>
+            <p className="nex-evidence-detail">{activeEvidence.detail}</p>
+            <div className="nex-evidence-clue">
+              <span>Case journal updated</span>
+              <p>{activeEvidence.clue}</p>
+            </div>
+            <button
+              type="button"
+              className="nex-btn nex-primary nex-evidence-continue"
+              onClick={closeEvidence}
+            >
+              Continue investigating
+            </button>
+          </section>
+        )}
+
+        <div className="nex-game-foot" data-testid="game-world-name">
+          {world ? `${world.name} — ${world.subject}` : worldId}
+        </div>
+
         <Dialogue />
       </main>
     )
   }
 
   return (
-    <main style={{ padding: 32 }}>
-      <h2>Nexaura</h2>
+    <main className="nex-root nex-unknown">
+      <h2>Nexaura · The Missing Notebook</h2>
       <p>Unknown screen: {String(view)}</p>
       <button
-        onClick={() => useGame.getState().goLanding()}
+        onClick={() => useGame.getState().setView('landing')}
         className="nex-btn nex-primary"
         style={{ marginTop: 16 }}
       >

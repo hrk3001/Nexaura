@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#02070d"/>
+      <stop offset=".45" stop-color="#061724"/>
+      <stop offset=".74" stop-color="#0b2633"/>
+      <stop offset="1" stop-color="#061019"/>
+    </linearGradient>
+    <radialGradient id="haze" cx=".67" cy=".58" r=".52">
+      <stop offset="0" stop-color="#1b6572" stop-opacity=".46"/>
+      <stop offset=".55" stop-color="#0c3340" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#061019" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="amberGlow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#ffd59a" stop-opacity=".9"/>
+      <stop offset=".32" stop-color="#f0a94f" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#f0a94f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tentFace" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#143f4a"/>
+      <stop offset="1" stop-color="#071923"/>
+    </linearGradient>
+    <linearGradient id="tentLit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd08a" stop-opacity=".78"/>
+      <stop offset="1" stop-color="#c5762e" stop-opacity=".12"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1b24"/>
+      <stop offset="1" stop-color="#02070b"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#76e6f2" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#76e6f2" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <filter id="softer" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="tinyGlow" x="-200%" y="-200%" width="500%" height="500%">
+      <feGaussianBlur stdDeviation="2.5"/>
+    </filter>
+    <radialGradient id="vignette" cx=".5" cy=".46" r=".78">
+      <stop offset=".45" stop-color="#02060b" stop-opacity="0"/>
+      <stop offset="1" stop-color="#010407" stop-opacity=".88"/>
+    </radialGradient>
+    <pattern id="grain" width="4" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r=".55" fill="#a6f1ff" fill-opacity=".07"/>
+    </pattern>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#sky)"/>
+  <rect width="1600" height="1000" fill="url(#haze)"/>
+
+  <!-- stars and drifting dust -->
+  <g fill="#b9f4ff">
+    <circle cx="160" cy="110" r="1.1" opacity=".45"/>
+    <circle cx="290" cy="190" r="1.6" opacity=".35"/>
+    <circle cx="430" cy="90" r="1" opacity=".5"/>
+    <circle cx="560" cy="220" r="1.2" opacity=".28"/>
+    <circle cx="720" cy="120" r="1" opacity=".5"/>
+    <circle cx="860" cy="200" r="1.4" opacity=".3"/>
+    <circle cx="1040" cy="95" r="1.2" opacity=".45"/>
+    <circle cx="1190" cy="170" r="1" opacity=".3"/>
+    <circle cx="1340" cy="110" r="1.5" opacity=".4"/>
+    <circle cx="1460" cy="215" r="1" opacity=".28"/>
+    <circle cx="250" cy="300" r="1" opacity=".2"/>
+    <circle cx="980" cy="300" r="1" opacity=".2"/>
+    <circle cx="1290" cy="300" r="1" opacity=".22"/>
+    <circle cx="600" cy="320" r="1" opacity=".18"/>
+    <circle cx="1540" cy="330" r="1" opacity=".2"/>
+  </g>
+  <rect width="1600" height="1000" fill="url(#grain)" opacity=".8"/>
+
+  <!-- distant tree line -->
+  <path d="M0 640 L90 590 L150 625 L220 560 L290 620 L350 585 L430 640 L520 570 L590 630 L660 590 L740 640 L830 570 L900 625 L980 585 L1060 640 L1140 590 L1210 630 L1290 580 L1370 640 L1450 595 L1530 630 L1600 590 L1600 760 L0 760 Z"
+        fill="#041117" opacity=".9"/>
+  <g fill="#031015" opacity=".85">
+    <path d="M80 640 l22 -110 22 110 z"/>
+    <path d="M190 645 l30 -150 30 150 z"/>
+    <path d="M310 650 l18 -95 18 95 z"/>
+    <path d="M1420 645 l26 -135 26 135 z"/>
+    <path d="M1510 650 l18 -100 18 100 z"/>
+  </g>
+
+  <!-- searchlight beams -->
+  <path d="M760 690 L610 190 L700 190 L840 690 Z" fill="url(#beam)" opacity=".55"/>
+  <path d="M1110 690 L1230 230 L1310 230 L1210 690 Z" fill="url(#beam)" opacity=".32"/>
+
+  <!-- ferris wheel silhouette -->
+  <g opacity=".55" stroke="#1a4a55" fill="none">
+    <circle cx="1320" cy="420" r="168" stroke-width="5"/>
+    <circle cx="1320" cy="420" r="146" stroke-width="2" opacity=".65"/>
+    <circle cx="1320" cy="420" r="20" stroke-width="4"/>
+    <g stroke-width="1.6" opacity=".85">
+      <path d="M1320 254 V586 M1154 420 H1486 M1203 303 L1437 537 M1437 303 L1203 537"/>
+      <path d="M1320 254 L1320 586" />
+    </g>
+    <g fill="#0a1d25" stroke="#2a6a72" stroke-width="2">
+      <rect x="1302" y="244" width="36" height="24" rx="5"/>
+      <rect x="1302" y="572" width="36" height="24" rx="5"/>
+      <rect x="1145" y="408" width="24" height="24" rx="5"/>
+      <rect x="1471" y="408" width="24" height="24" rx="5"/>
+      <rect x="1194" y="292" width="24" height="24" rx="5"/>
+      <rect x="1422" y="524" width="24" height="24" rx="5"/>
+      <rect x="1422" y="292" width="24" height="24" rx="5"/>
+      <rect x="1194" y="524" width="24" height="24" rx="5"/>
+    </g>
+    <path d="M1320 588 L1260 742 M1320 588 L1380 742" stroke-width="6"/>
+  </g>
+
+  <!-- fair tents -->
+  <g>
+    <!-- left tent -->
+    <path d="M180 720 L350 470 L520 720 Z" fill="url(#tentFace)" stroke="#2a6571" stroke-width="2" opacity=".9"/>
+    <path d="M350 470 L410 720 L350 720 Z" fill="#07161e" opacity=".7"/>
+    <path d="M300 720 V605 Q350 575 400 605 V720 Z" fill="url(#tentLit)" opacity=".65"/>
+    <path d="M350 470 L350 445" stroke="#f3bf74" stroke-width="3" opacity=".7"/>
+    <circle cx="350" cy="440" r="17" fill="url(#amberGlow)" opacity=".8"/>
+
+    <!-- central office tent, strongest light -->
+    <path d="M650 720 L870 380 L1090 720 Z" fill="url(#tentFace)" stroke="#3b7c87" stroke-width="2.5"/>
+    <path d="M870 380 L930 720 L870 720 Z" fill="#06141c" opacity=".6"/>
+    <path d="M790 720 V560 Q870 515 950 560 V720 Z" fill="url(#tentLit)" opacity=".9"/>
+    <path d="M820 720 V595 Q870 565 920 595 V720 Z" fill="#ffcf8a" opacity=".3"/>
+    <path d="M870 380 L870 344" stroke="#ffd79a" stroke-width="4"/>
+    <circle cx="870" cy="338" r="32" fill="url(#amberGlow)"/>
+    <circle cx="870" cy="338" r="7" fill="#ffe6bc"/>
+    <path d="M640 720 H1100" stroke="#f0b86e" stroke-width="2" opacity=".35"/>
+
+    <!-- right tent -->
+    <path d="M1080 720 L1210 545 L1340 720 Z" fill="#071922" stroke="#225560" stroke-width="2"/>
+    <path d="M1150 720 V625 Q1210 598 1270 625 V720 Z" fill="#f4b86e" opacity=".16"/>
+  </g>
+
+  <!-- string lights -->
+  <g fill="none" stroke="#5d8f98" stroke-width="1.2" opacity=".7">
+    <path d="M120 500 Q420 600 700 505 Q980 415 1280 510 Q1450 570 1560 520"/>
+    <path d="M180 550 Q480 650 780 555 Q1060 465 1360 560"/>
+  </g>
+  <g fill="#ffd08a">
+    <circle cx="250" cy="527" r="4" filter="url(#tinyGlow)"/>
+    <circle cx="380" cy="560" r="3.5" filter="url(#tinyGlow)"/>
+    <circle cx="520" cy="560" r="4" filter="url(#tinyGlow)"/>
+    <circle cx="660" cy="523" r="3.5" filter="url(#tinyGlow)"/>
+    <circle cx="790" cy="472" r="4" filter="url(#tinyGlow)"/>
+    <circle cx="930" cy="447" r="3.5" filter="url(#tinyGlow)"/>
+    <circle cx="1080" cy="465" r="4" filter="url(#tinyGlow)"/>
+    <circle cx="1220" cy="500" r="3.5" filter="url(#tinyGlow)"/>
+    <circle cx="1380" cy="550" r="4" filter="url(#tinyGlow)"/>
+    <circle cx="1510" cy="526" r="3.5" filter="url(#tinyGlow)"/>
+    <circle cx="330" cy="588" r="3" filter="url(#tinyGlow)"/>
+    <circle cx="470" cy="610" r="3" filter="url(#tinyGlow)"/>
+    <circle cx="620" cy="585" r="3" filter="url(#tinyGlow)"/>
+    <circle cx="900" cy="494" r="3" filter="url(#tinyGlow)"/>
+    <circle cx="1140" cy="508" r="3" filter="url(#tinyGlow)"/>
+    <circle cx="1300" cy="560" r="3" filter="url(#tinyGlow)"/>
+  </g>
+
+  <!-- ground and path -->
+  <path d="M0 700 Q360 660 720 700 T1600 690 V1000 H0 Z" fill="url(#ground)"/>
+  <path d="M520 1000 L760 700 L880 700 L1080 1000 Z" fill="#0a202a" opacity=".8"/>
+  <path d="M620 1000 L790 700 M780 1000 L840 700 M950 1000 L890 700" stroke="#19414b" stroke-width="2" opacity=".45"/>
+
+  <!-- foreground silhouettes -->
+  <g fill="#02070b">
+    <path d="M0 850 Q100 810 220 835 T470 850 V1000 H0 Z"/>
+    <path d="M1120 860 Q1280 820 1450 850 T1600 835 V1000 H1120 Z"/>
+    <path d="M740 780 l10 -52 10 52 z"/>
+    <path d="M760 780 l8 -38 8 38 z"/>
+  </g>
+  <g stroke="#06141b" stroke-width="6" fill="none" opacity=".9">
+    <path d="M148 820 V680 M148 690 Q118 670 100 630 M148 705 Q180 680 205 645"/>
+    <path d="M1445 820 V670 M1445 685 Q1410 660 1390 620"/>
+  </g>
+  <g fill="#f7c47e" opacity=".7">
+    <circle cx="148" cy="678" r="7" filter="url(#tinyGlow)"/>
+    <circle cx="1445" cy="668" r="7" filter="url(#tinyGlow)"/>
+  </g>
+
+  <!-- fog -->
+  <g filter="url(#soft)" fill="#7fd7e4">
+    <ellipse cx="760" cy="720" rx="460" ry="50" opacity=".1"/>
+    <ellipse cx="1240" cy="700" rx="380" ry="42" opacity=".07"/>
+    <ellipse cx="430" cy="740" rx="300" ry="36" opacity=".06"/>
+  </g>
+
+  <!-- central glow -->
+  <ellipse cx="870" cy="700" rx="380" ry="90" fill="url(#amberGlow)" opacity=".3" filter="url(#softer)"/>
+  <rect width="1600" height="1000" fill="url(#vignette)"/>
+</svg>

@@ -16,6 +16,8 @@ const INITIAL_CASE_STATE = {
   closedRealms: 0,
   closedRealmsTotal: 6,
   solved: [],
+  evidence: [],
+  journal: [],
 }
 
 const useGame = create((set, get) => ({
@@ -38,7 +40,7 @@ const useGame = create((set, get) => ({
 
   flush: () =>
     set({
-      view: 'loading',
+      view: 'landing',
       worldId: null,
       caseState: {
         ...INITIAL_CASE_STATE,
@@ -60,6 +62,7 @@ const useGame = create((set, get) => ({
   selectWorld: (worldId) => {
     const world = getWorld(worldId)
     if (!world) return
+    if (!world._unlocked) return
     set({
       view: 'game',
       worldId,
@@ -74,14 +77,14 @@ const useGame = create((set, get) => ({
         closedRealms: get().caseState?.closedRealms ?? 0,
         closedRealmsTotal: 6,
         solved: get().caseState?.solved ?? [],
+        evidence: get().caseState?.evidence ?? [],
+        journal: get().caseState?.journal ?? [],
         savedChallenge: null,
       },
     })
   },
 
   goMap: () => set({ view: 'map' }),
-
-  goLanding: () => set({ view: 'landing' }),
 
   openDialogue: (lines) =>
     set({
@@ -118,6 +121,23 @@ const useGame = create((set, get) => ({
       markWorldUnlocked(world.nextWorld, true)
     }
   },
+
+  discoverEvidence: (entry) =>
+    set((s) => {
+      if (!entry?.id) return s
+      const found = s.caseState?.evidence ?? []
+      if (found.includes(entry.id)) return s
+      return {
+        caseState: {
+          ...s.caseState,
+          evidence: [...found, entry.id],
+          journal: [
+            ...(s.caseState?.journal ?? []),
+            { id: entry.id, title: entry.title, clue: entry.clue, worldId: s.worldId },
+          ],
+        },
+      }
+    }),
 
   recordChallenge: (challengeId) =>
     set((s) => {

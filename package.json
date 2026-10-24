@@ -1,0 +1,39 @@
+{
+  "name": "nexaura",
+  "version": "1.0.0",
+  "description": "Nexaura - a detective investigation game where every algorithm is evidence",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "setup": "npm install --prefix client && npm install --prefix server",
+    "dev": "npm run dev --prefix client",
+    "build": "npm run build --prefix client",
+    "preview": "npm run preview --prefix client",
+    "lint": "npm run lint --prefix client",
+    "db": "node scripts/local-mongo.mjs",
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "server": "node --env-file-if-exists=.env server/index.js",
+    "test": "node --test server/test/*.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hrk3001/Nexaura.git"
+  },
+  "keywords": [
+    "detective",
+    "game",
+    "algorithm",
+    "react",
+    "threejs",
+    "java"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hrk3001/Nexaura/issues"
+  },
+  "homepage": "https://github.com/hrk3001/Nexaura#readme"
+}

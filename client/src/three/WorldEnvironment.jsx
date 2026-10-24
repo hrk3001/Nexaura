@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { useThree } from '@react-three/fiber'
 
 function SafeEnv({ world }) {
   if (!world) return null
@@ -30,10 +29,6 @@ function SafeEnv({ world }) {
 }
 
 export default function WorldEnvironment({ world }) {
-  // Use a proper hook at the top level; choose the palette via memo, never
-  // inside a ternary that gatekeeps the hook call.
-  useThree()
-  useMemo(() => (world ? { sun: '#f5c453', hemi: world.gradient?.[0] || '#34d399' } : {}),
-    [world])
+  useMemo(() => (world ? { sun: '#f5c453', hemi: world.gradient?.[0] || '#34d399' } : {}), [world])
   return <SafeEnv world={world} />
 }
