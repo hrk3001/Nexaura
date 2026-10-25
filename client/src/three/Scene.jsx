@@ -176,7 +176,7 @@ function Stall({ x, z, index, color }) {
         <boxGeometry args={[3.3, 0.18, 2.3]} />
         <meshStandardMaterial color={color} flatShading />
       </mesh>
-      <Label title={`[${index}]`} position={[0, 4.1, 0]} width={1.8} accent={color} />
+      <Label title={`[${index}]`} position={[0, 4.0, 0]} width={0.9} accent={color} />
     </group>
   )
 }
@@ -206,7 +206,7 @@ function Table({ x, z, w, d, label, paper = false }) {
           <meshStandardMaterial color="#ffffff" flatShading />
         </mesh>
       ) : null}
-      {label ? <Label title={label} position={[0, 1.7, 0]} width={1.8} accent="#fbbf24" /> : null}
+      {label ? <Label title={label} position={[0, 1.5, 0]} width={1.0} accent="#fbbf24" /> : null}
     </group>
   )
 }
@@ -230,7 +230,7 @@ function Office() {
         <boxGeometry args={[0.1, 0.8, 0.7]} />
         <meshStandardMaterial color="#93c5fd" flatShading />
       </mesh>
-      <Label title="FAIR OFFICE" position={[-1.2, 4.3, 0]} width={2.8} accent="#38bdf8" />
+      <Label title="FAIR OFFICE" position={[-1.2, 4.2, 0]} width={1.7} accent="#38bdf8" />
     </group>
   )
 }
@@ -362,7 +362,8 @@ function Marker({ entry, isNearby, isFound }) {
   })
 
   const color = isFound ? '#60a5fa' : isNearby ? '#fbbf24' : '#34d399'
-  const sub = isNearby ? 'Press E to inspect' : isFound ? 'Logged' : 'Evidence'
+  // Small title when far away; bigger with a hint only when the player is close.
+  const sub = isNearby ? 'Press E to inspect' : isFound ? 'Logged' : ''
   const [x, , z] = entry.position
 
   return (
@@ -378,7 +379,13 @@ function Marker({ entry, isNearby, isFound }) {
       <group ref={body} scale={isNearby ? 1.25 : 1}>
         <MarkerShape kind={entry.object} color={color} />
       </group>
-      <Label title={entry.title} sub={sub} accent={color} position={[0, 2.4, 0]} />
+      <Label
+        title={entry.title}
+        sub={sub}
+        accent={color}
+        position={[0, 2.1, 0]}
+        width={isNearby ? 2.1 : 1.35}
+      />
     </group>
   )
 }
@@ -386,9 +393,10 @@ function Marker({ entry, isNearby, isFound }) {
 // ---------------------------------------------------------------- player
 function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
   const group = useRef(null)
-  const player = useRef({ x: SPAWN.x, z: SPAWN.z, heading: 0, time: 0 })
+  const player = useRef({ x: SPAWN.x, z: SPAWN.z, heading: 0, leanX: 0, leanZ: 0, time: 0 })
   const held = useRef(new Set())
   const nearby = useRef(null)
+  const walking = useRef(false)
   const live = useRef({ interactive, paused, evidence, onNearby, onInspect })
 
   useEffect(() => {
@@ -449,6 +457,7 @@ function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
     let dx = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0)
     let dz = (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - (keys.has('w') || keys.has('arrowup') ? 1 : 0)
     const moving = dx !== 0 || dz !== 0
+    walking.current = moving
 
     if (moving) {
       const len = Math.hypot(dx, dz)
@@ -458,14 +467,21 @@ function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
       if (!isBlocked(nx, p.z)) p.x = nx
       const nz = p.z + dz * SPEED * dt
       if (!isBlocked(p.x, nz)) p.z = nz
-      p.heading = turnToward(p.heading, Math.atan2(dx, dz), dt * 12)
     }
+
+    // The detective keeps facing the camera. He only turns a little toward
+    // sideways movement and leans into the direction he walks.
+    const blend = Math.min(1, dt * 10)
+    p.heading = turnToward(p.heading, dx * 0.5, blend)
+    p.leanZ += (-dx * 0.12 - p.leanZ) * blend
+    p.leanX += (dz * 0.1 - p.leanX) * blend
 
     const node = group.current
     if (node) {
       node.position.set(p.x, moving ? Math.abs(Math.sin(p.time * 10)) * 0.08 : 0, p.z)
       node.rotation.y = p.heading
-      node.rotation.z = moving ? Math.sin(p.time * 10) * 0.04 : 0
+      node.rotation.x = p.leanX
+      node.rotation.z = p.leanZ + (moving ? Math.sin(p.time * 10) * 0.03 : 0)
     }
 
     // Camera follows from behind and above.
@@ -491,7 +507,7 @@ function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
 
   return (
     <group ref={group} position={[SPAWN.x, 0, SPAWN.z]} scale={0.85}>
-      <Detective />
+      <Detective movingRef={walking} />
     </group>
   )
 }
