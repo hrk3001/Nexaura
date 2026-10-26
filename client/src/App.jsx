@@ -61,6 +61,12 @@ export default function App() {
     const nearby = evidence.find((entry) => entry.id === nearbyId) || null
     const activeEvidence = evidence.find((entry) => entry.id === activeEvidenceId) || null
 
+    // The Java challenge opens only after every clue in the fair is logged
+    // (or if this stop was already cleared).
+    const allEvidenceFound = evidence.length > 0 && evidenceFound >= evidence.length
+    const challengeUnlocked = !isArray || allEvidenceFound || !!world?._completed
+    const showIri = isArray && explore && allEvidenceFound && !world?._completed && !activeEvidence
+
     const openEvidence = (id) => {
       const entry = evidence.find((item) => item.id === id)
       if (!entry) return
@@ -72,6 +78,7 @@ export default function App() {
     const closeEvidence = () => setActiveEvidenceId(null)
 
     const toggleMode = () => {
+      if (explore && !challengeUnlocked) return
       document.activeElement?.blur?.()
       setActiveEvidenceId(null)
       setNearbyId(null)
@@ -106,9 +113,20 @@ export default function App() {
             {isArray && (
               <button
                 onClick={toggleMode}
+                disabled={explore && !challengeUnlocked}
+                title={
+                  explore && !challengeUnlocked
+                    ? 'Find and inspect every clue to unlock the challenge'
+                    : undefined
+                }
+                style={explore && !challengeUnlocked ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
                 className="nex-btn nex-ghost small nex-mode-btn"
               >
-                {explore ? 'Open Java challenge' : '← Explore the fair'}
+                {explore
+                  ? challengeUnlocked
+                    ? 'Open Java challenge'
+                    : `Challenge locked · ${evidenceFound}/${evidence.length} clues`
+                  : '← Explore the fair'}
               </button>
             )}
             <div className="nex-hud-case">
@@ -216,6 +234,40 @@ export default function App() {
               <span><kbd>E</kbd> inspect evidence</span>
             </div>
 
+            {showIri && (
+              <div
+                role="status"
+                style={{
+                  position: 'fixed',
+                  top: 78,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 20,
+                  pointerEvents: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '10px 14px',
+                  borderRadius: 14,
+                  background: 'rgba(8, 16, 32, 0.92)',
+                  border: '1px solid rgba(52, 211, 153, 0.6)',
+                  color: '#e2e8f0',
+                  boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
+                  maxWidth: 'calc(100vw - 32px)',
+                }}
+              >
+                <strong style={{ color: '#34d399', letterSpacing: '0.08em' }}>IRI</strong>
+                <span>Evidence logged. Now decode the records.</span>
+                <button
+                  type="button"
+                  className="nex-btn nex-primary small"
+                  onClick={toggleMode}
+                >
+                  Open Java challenge →
+                </button>
+              </div>
+            )}
+
             {nearby && !activeEvidence ? (
               <div className="nex-interact-prompt" role="status">
                 <span>Evidence nearby</span>
@@ -224,7 +276,11 @@ export default function App() {
               </div>
             ) : !activeEvidence ? (
               <p className="nex-explore-hint">
-                Walk to a glowing evidence marker and press <kbd>E</kbd>.
+                {allEvidenceFound
+                  ? 'All clues logged.'
+                  : `Clues ${evidenceFound}/${evidence.length} · Walk to a glowing evidence marker and press `}
+                {allEvidenceFound ? null : <kbd>E</kbd>}
+                {allEvidenceFound ? null : '.'}
               </p>
             ) : null}
           </div>
