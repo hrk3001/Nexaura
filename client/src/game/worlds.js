@@ -167,6 +167,181 @@ const MODULES = {
   },
 }
 
+// Walkable clues and the story beat shown after a stop is cleared.
+// Positions are [x, y, z] in the 3D scene (spawn is near x -2, z 8).
+// objects: record | laptop | crystal | ring | cube
+const EXTRA = {
+  arrays: {
+    successLine:
+      'The duplicate 8:20 entry is exposed. Someone forged Maya\'s badge, and the trail now leads to the ride queue.',
+  },
+  linked: {
+    successLine:
+      'Wristband A17 is found at the broken link. The chain leads from the coaster to the maintenance corridor behind it.',
+    evidence: [
+      {
+        id: 'linked-queue',
+        title: 'Ride queue log',
+        object: 'record',
+        position: [-4, 0.12, 3.2],
+        location: 'Linked List Roller Coaster · queue gate',
+        detail: 'Every wristband points to the next one. Wristband A17 is missing from the chain between 8:12 and 8:24.',
+        clue: 'The chain breaks at A17 — the same window the office door stood open.',
+      },
+      {
+        id: 'linked-lanyard',
+        title: 'Lost & found',
+        object: 'ring',
+        position: [3.5, 0.5, 1.2],
+        location: 'Linked List Roller Coaster · lost & found',
+        detail: 'A volunteer lanyard with a broken clip. The chain pattern matches the office key ring.',
+        clue: 'A clip from the office key ring was dropped beside the coaster.',
+      },
+      {
+        id: 'linked-door',
+        title: 'Maintenance door',
+        object: 'cube',
+        position: [9, 0.5, 3],
+        location: 'Linked List Roller Coaster · behind the ride',
+        detail: 'The corridor behind the coaster leads straight to the printing booth.',
+        clue: 'Whoever took the wristband used the corridor to reach the printing booth.',
+      },
+    ],
+  },
+  stack: {
+    successLine:
+      'The override ticket is on top of the stack, stamped 8:18. Mr. Rao\'s card opened the office, and nothing was ever cashed out.',
+    evidence: [
+      {
+        id: 'stack-prizes',
+        title: 'Prize counter',
+        object: 'record',
+        position: [-4, 0.12, 3],
+        location: 'Stack & Queue Arcade · prize counter',
+        detail: 'The ticket stack is out of order: a staff override sits on top, timestamped 8:18.',
+        clue: 'The last ticket pushed was a staff override — it is the first one out.',
+      },
+      {
+        id: 'stack-doorlog',
+        title: 'Office door log',
+        object: 'laptop',
+        position: [3.5, 0.3, 1.5],
+        location: 'Stack & Queue Arcade · door-log terminal',
+        detail: "One entry at 8:18, keyed by Mr. Rao's master card. No exit was logged.",
+        clue: 'The office was opened at 8:18 and nobody was recorded leaving.',
+      },
+      {
+        id: 'stack-queue',
+        title: 'Queue screen',
+        object: 'crystal',
+        position: [9, 0.6, 3.5],
+        location: 'Stack & Queue Arcade · queue screen',
+        detail: 'The arcade queue skipped from position 4 to 6 while the office door was open.',
+        clue: 'Someone jumped the queue at the exact moment the office was open.',
+      },
+    ],
+  },
+  tree: {
+    successLine:
+      "The staff tree is mapped. Dev's badge hangs under the printing booth, one branch below Mr. Rao, so only those two could reach the key.",
+    evidence: [
+      {
+        id: 'tree-staff',
+        title: 'Staff tree',
+        object: 'crystal',
+        position: [-1.5, 0.6, 2.5],
+        location: 'Tree Playground · play frame',
+        detail: "Mr. Rao is the root. Dev's badge hangs from the printing booth branch, not the office.",
+        clue: "Dev works under the printing booth, directly below Mr. Rao.",
+      },
+      {
+        id: 'tree-board',
+        title: 'Clue board',
+        object: 'record',
+        position: [4.5, 0.12, 4],
+        location: 'Tree Playground · sandpit',
+        detail: "A child's drawing of the playground tree has an X under the printing booth.",
+        clue: 'A drawing marks the printing booth as the place to look.',
+      },
+      {
+        id: 'tree-keys',
+        title: 'Key cabinet',
+        object: 'ring',
+        position: [-8, 0.5, 0.5],
+        location: 'Tree Playground · key cabinet',
+        detail: "Only Mr. Rao's branch holds a master key. One key is missing from the hook.",
+        clue: 'One master key is missing from the only branch that holds them.',
+      },
+    ],
+  },
+  graph: {
+    successLine:
+      'The fair map gives the shortest route: office, printing booth, judges\' stage. A handcart took the notebook that way at 8:26.',
+    evidence: [
+      {
+        id: 'graph-map',
+        title: 'Path map',
+        object: 'record',
+        position: [-5, 0.12, 3.5],
+        location: 'Graph Town · town map',
+        detail: 'The shortest office-to-stage route passes the printing booth, not the main gate.',
+        clue: 'The quickest way from the office to the stage runs through the printing booth.',
+      },
+      {
+        id: 'graph-cart',
+        title: 'Cart route',
+        object: 'cube',
+        position: [1.5, 0.5, 1],
+        location: 'Graph Town · booth road',
+        detail: 'A handcart was logged on that route at 8:26 with a box labelled for Maya.',
+        clue: 'A box marked "MAYA — DO NOT MOVE" went down that road at 8:26.',
+      },
+      {
+        id: 'graph-stage',
+        title: 'Stage door',
+        object: 'crystal',
+        position: [8.5, 0.6, 3],
+        location: 'Graph Town · stage door',
+        detail: "The judges' table was set up at 8:40. A notebook-sized parcel was placed there.",
+        clue: "A notebook-sized parcel reached the judges' table at 8:40.",
+      },
+    ],
+  },
+  dp: {
+    successLine:
+      "The timeline fits together piece by piece: office 8:18, printing booth 8:26, judges' table 8:40. Case closed at 8:55.",
+    evidence: [
+      {
+        id: 'dp-timeline',
+        title: 'Timeline puzzle',
+        object: 'record',
+        position: [-4.5, 0.12, 3.5],
+        location: 'DP Puzzle Park · puzzle board',
+        detail: "The sequence fits: office 8:18, printing booth 8:26, judges' table 8:40.",
+        clue: 'Every earlier clue is one step of the same timeline.',
+      },
+      {
+        id: 'dp-table',
+        title: "Judges' table",
+        object: 'crystal',
+        position: [3, 0.6, 1.5],
+        location: "DP Puzzle Park · judges' table",
+        detail: "Maya's notebook is safe here. The last page carries Dev's handwriting: \"I only needed the formula.\"",
+        clue: 'The notebook is safe, and the last page is in Dev\'s handwriting.',
+      },
+      {
+        id: 'dp-report',
+        title: 'Final report',
+        object: 'laptop',
+        position: [8.5, 0.3, 3.5],
+        location: 'DP Puzzle Park · report desk',
+        detail: "Dev took the notebook to copy Maya's formula. Mr. Rao moved it to the judges' table. Case closed at 8:55.",
+        clue: "Dev borrowed it to copy the formula; Mr. Rao moved it. Nobody meant to steal it.",
+      },
+    ],
+  },
+}
+
 const worlds = {}
 const order = []
 for (const id of Object.keys(MODULES)) {
@@ -184,7 +359,8 @@ for (const id of Object.keys(MODULES)) {
     topic: w.topic,
     nextWorld: w.nextWorld,
     introSpots: w.introSpots,
-    evidence: w.evidence || [],
+    evidence: w.evidence || (EXTRA[id] && EXTRA[id].evidence) || [],
+    successLine: (EXTRA[id] && EXTRA[id].successLine) || '',
   }
   order.push(id)
 }

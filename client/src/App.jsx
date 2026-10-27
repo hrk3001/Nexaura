@@ -4,6 +4,8 @@ import Intro from './ui/Intro.jsx'
 import Landing from './ui/Landing.jsx'
 import WorldMap from './ui/WorldMap.jsx'
 import JavaChallenge from './ui/JavaChallenge.jsx'
+import Finale from './ui/Finale.jsx'
+import Login from './ui/Login.jsx'
 import Dialogue from './ui/Dialogue.jsx'
 import Scene from './three/Scene.jsx'
 import worlds, { CASE } from './game/worlds.js'
@@ -13,13 +15,15 @@ export default function App() {
   const init = useGame((state) => state.init)
   const worldId = useGame((state) => state.worldId)
   const caseState = useGame((state) => state.caseState)
+  const user = useGame((state) => state.user)
+  const logout = useGame((state) => state.logout)
   const discoverEvidence = useGame((state) => state.discoverEvidence)
 
-  const isArray = worldId === 'arrays'
+  const hasScene = !!(worldId && worlds[worldId] && worlds[worldId].evidence && worlds[worldId].evidence.length)
   const [challengeMode, setChallengeMode] = useState(false)
   const [nearbyId, setNearbyId] = useState(null)
   const [activeEvidenceId, setActiveEvidenceId] = useState(null)
-  const explore = isArray && !challengeMode
+  const explore = hasScene && !challengeMode
 
   useEffect(() => {
     init()
@@ -39,13 +43,59 @@ export default function App() {
     )
   }
 
-  if (view === 'landing') return <Landing />
-  if (view === 'intro') return <Intro />
+  if (view === 'login') return <Login />
+
+  const userPill = user ? (
+    <div
+      style={{
+        position: 'fixed',
+        left: 14,
+        bottom: 10,
+        zIndex: 60,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '5px 10px',
+        borderRadius: 999,
+        fontSize: 12,
+        background: 'rgba(8,18,32,.8)',
+        border: '1px solid rgba(255,255,255,.14)',
+        color: '#c7d8e2',
+      }}
+    >
+      <span>Detective {user.name}</span>
+      <button
+        type="button"
+        onClick={logout}
+        style={{ border: 'none', background: 'transparent', color: '#5eead4', fontWeight: 800, cursor: 'pointer', fontSize: 12 }}
+      >
+        Log out
+      </button>
+    </div>
+  ) : null
+
+  if (view === 'landing') return <><Landing />{userPill}</>
+  if (view === 'intro') return <><Intro />{userPill}</>
+
+  if (view === 'finale') return <><Finale />{userPill}</>
 
   if (view === 'map') {
+    const allCleared =
+      (caseState?.closedRealms ?? 0) >= (caseState?.closedRealmsTotal ?? 6)
     return (
       <>
         <WorldMap />
+        {userPill}
+        {allCleared && (
+          <button
+            type="button"
+            className="nex-btn nex-primary"
+            style={{ position: 'fixed', right: 24, bottom: 56, zIndex: 50 }}
+            onClick={() => useGame.getState().setView('finale')}
+          >
+            {'Case solved \u2014 read the final report \u2192'}
+          </button>
+        )}
         <Dialogue />
       </>
     )
@@ -55,7 +105,7 @@ export default function App() {
     const { closed, total } = useGame.getState().progress()
     const world = worldId ? (worlds[worldId] || null) : null
     const records = world?.introSpots ?? []
-    const evidence = isArray ? (world?.evidence ?? []) : []
+    const evidence = hasScene ? (world?.evidence ?? []) : []
     const journal = caseState?.journal ?? []
     const evidenceFound = caseState?.evidence?.length ?? 0
     const nearby = evidence.find((entry) => entry.id === nearbyId) || null
@@ -64,8 +114,8 @@ export default function App() {
     // The Java challenge opens only after every clue in the fair is logged
     // (or if this stop was already cleared).
     const allEvidenceFound = evidence.length > 0 && evidenceFound >= evidence.length
-    const challengeUnlocked = !isArray || allEvidenceFound || !!world?._completed
-    const showIri = isArray && explore && allEvidenceFound && !world?._completed && !activeEvidence
+    const challengeUnlocked = !hasScene || allEvidenceFound || !!world?._completed
+    const showIri = hasScene && explore && allEvidenceFound && !world?._completed && !activeEvidence
 
     const openEvidence = (id) => {
       const entry = evidence.find((item) => item.id === id)
@@ -110,7 +160,7 @@ export default function App() {
             >
               ← Case map
             </button>
-            {isArray && (
+            {hasScene && (
               <button
                 onClick={toggleMode}
                 disabled={explore && !challengeUnlocked}
@@ -177,7 +227,7 @@ export default function App() {
               </ul>
             </div>
 
-            {isArray && (
+            {hasScene && (
               <div className="nex-rail-section nex-journal">
                 <span>Case journal</span>
                 <p className="nex-journal-meta">
@@ -325,6 +375,7 @@ export default function App() {
         </div>
 
         <Dialogue />
+        {userPill}
       </main>
     )
   }

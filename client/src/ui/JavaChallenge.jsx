@@ -2,18 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import { useGame } from '../game/store.js'
 import worlds from '../game/worlds.js'
 
+// How many accepted challenges close this fair stop and unlock the next one.
+// Raise it when each stop has 5-6 challenges.
+const CLOSE_AFTER = 1
+
 export default function JavaChallenge({ challengeId }) {
   const worldId = useGame((s) => s.worldId)
   const caseState = useGame((s) => s.caseState)
   const setCaseState = useGame((s) => s.setCaseState)
   const completeWorld = useGame((s) => s.completeWorld)
   const recordChallenge = useGame((s) => s.recordChallenge)
+  const goMap = useGame((s) => s.goMap)
+  const setView = useGame((s) => s.setView)
 
   const world = worldId ? (worlds[worldId] || null) : null
   const topic = world?.topic
 
-  // "Chosen challenge" either comes from a past solve (caseState.savedChallenge)
-  // or from the currently active one we are displaying in the editor.
   const savedChallenge = caseState?.savedChallenge ?? null
   const preferredId = savedChallenge?.id || challengeId || null
 
@@ -21,6 +25,8 @@ export default function JavaChallenge({ challengeId }) {
   const [activeChallengeId, setActiveChallengeId] = useState(preferredId)
   const [code, setCode] = useState(savedChallenge?.starterCode || '')
   const [output, setOutput] = useState('')
+  const [verdict, setVerdict] = useState(null) // { ok, title }
+  const [beat, setBeat] = useState(null) // story card shown after an accepted answer
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [compileErrors, setCompileErrors] = useState('')
@@ -36,6 +42,8 @@ export default function JavaChallenge({ challengeId }) {
     setDeck(null)
     setDeckError('')
     setOutput('')
+    setVerdict(null)
+    setBeat(null)
     setError('')
     setCompileErrors('')
     fetch(`/api/challenges?topic=${encodeURIComponent(topic)}`, {
@@ -63,30 +71,30 @@ export default function JavaChallenge({ challengeId }) {
     return () => controller.abort()
   }, [topic])
 
-  // Pick exactly one active challenge whenever the deck loads, the chapter
-  // changes, or the current challenge is solved. Setting the id and the object
-  // together keeps them in sync; the early return makes the effect idempotent.
+  // Pick the first challenge ONLY when a deck arrives. Solving a challenge must
+  // never swap the question under the player; moving on is the Next button.
   useEffect(() => {
-    if (!deck || !topic) return
-    const seen = caseState?.solved ?? []
-    const activeInDeck = !!(challenge && deck.some((c) => c.id === challenge.id))
-    if (activeInDeck && !seen.includes(challenge.id)) return
-
-    const preferred = preferredId
-      ? deck.find((c) => c.id === preferredId && !seen.includes(c.id))
-      : null
+    if (!deck || deck.length === 0) return
+    const seen = useGame.getState().caseState?.solved ?? []
     const next =
-      preferred ||
+      (preferredId && deck.find((c) => c.id === preferredId && !seen.includes(c.id))) ||
       deck.find((c) => !seen.includes(c.id)) ||
-      (activeInDeck ? null : deck[0])
-
-    if (!next || next.id === challenge?.id) return
+      deck[0]
     setActiveChallengeId(next.id)
     setChallenge(next)
     setCode(next.starterCode || '')
+  }, [deck])
+
+  const openChallenge = (next) => {
+    setActiveChallengeId(next.id)
+    setChallenge(next)
+    setCode(next.starterCode || '')
+    setOutput('')
+    setVerdict(null)
+    setBeat(null)
     setError('')
     setCompileErrors('')
-  }, [deck, topic, challenge?.id, caseState?.solved, preferredId])
+  }
 
   const compileCheck = () => {
     if (inFlightRef.current) return
@@ -94,6 +102,7 @@ export default function JavaChallenge({ challengeId }) {
     setLoading(true)
     setError('')
     setOutput('')
+    setVerdict(null)
     setCompileErrors('')
     fetch('/api/challenge/compile_check', {
       method: 'POST',
@@ -103,8 +112,10 @@ export default function JavaChallenge({ challengeId }) {
       .then((r) => r.json())
       .then((d) => {
         if (d.status === 'ok') {
+          setVerdict({ ok: true, title: 'Build clean' })
           setOutput('Build clean — no compile errors.')
         } else {
+          setVerdict({ ok: false, title: 'Build failed' })
           setOutput(`Build failed: ${d.message || 'compilation error'}.`)
           const errors = Array.isArray(d.errors)
             ? d.errors
@@ -120,6 +131,7 @@ export default function JavaChallenge({ challengeId }) {
         }
       })
       .catch((e) => {
+        setVerdict({ ok: false, title: 'Judge not reachable' })
         setOutput('Network error — the judge did not reply.')
         setError(e.message)
       })
@@ -136,6 +148,8 @@ export default function JavaChallenge({ challengeId }) {
     setLoading(true)
     setError('')
     setOutput('')
+    setVerdict(null)
+    setBeat(null)
     setCompileErrors('')
     fetch('/api/challenge/submit', {
       method: 'POST',
@@ -148,15 +162,14 @@ export default function JavaChallenge({ challengeId }) {
     })
       .then((r) => r.json())
       .then((d) => {
-        // Only a real accepted verdict may advance the case. Server/validation
-        // errors and wrong answers must never be treated as success.
+        // Only a real accepted verdict may advance the case.
         const accepted = d.status === 'accepted'
 
         if (accepted) {
-          // Read the live store so a duplicate/rapid response cannot award the
-          // same challenge twice from a stale render closure.
-          const solvedNow = useGame.getState().caseState?.solved ?? []
-          if (!solvedNow.includes(solvedId)) {
+          setVerdict({ ok: true, title: 'Accepted' })
+          // Read the live store so a duplicate response cannot award twice.
+          const solvedBefore = useGame.getState().caseState?.solved ?? []
+          if (!solvedBefore.includes(solvedId)) {
             recordChallenge(solvedId)
             const rewards = challenge
               ? { xp: challenge.xpReward || 0, coins: challenge.coinReward || 0 }
@@ -166,27 +179,40 @@ export default function JavaChallenge({ challengeId }) {
               xp: (prev.xp || 0) + rewards.xp,
               coins: (prev.coins || 0) + rewards.coins,
             }))
-            // The first accepted challenge closes this fair stop and unlocks
-            // the next one. completeWorld() is itself idempotent.
-            completeWorld(worldId)
           }
-          // Build a readable human summary from whatever the judge sent back.
-          const cases =
-            (d.cases && d.cases.length)
-              ? d.cases
-              : []
+
+          const solvedNow = new Set([...solvedBefore, solvedId])
+          const doneInStop = deck ? deck.filter((c) => solvedNow.has(c.id)).length : 1
+          const realmClosed = doneInStop >= Math.min(CLOSE_AFTER, deck ? deck.length : 1)
+          if (realmClosed) completeWorld(worldId) // idempotent
+
+          const nextChallenge = deck ? deck.find((c) => !solvedNow.has(c.id)) || null : null
+          const nextWorld = world?.nextWorld ? worlds[world.nextWorld] : null
+          setBeat({
+            realmClosed,
+            nextChallenge,
+            line:
+              challenge?.successStory ||
+              world?.successLine ||
+              'The record decodes. Another page of the missing notebook comes back into the light.',
+            nextWorldName: nextWorld ? nextWorld.name || nextWorld.title : null,
+          })
+
+          const cases = d.cases && d.cases.length ? d.cases : []
           const verdictLine = cases.length
-            ? cases.map((c) => `${'Case ' + c.index + ':'} ${c.verdict}`).join('\n')
-            : `Verdict: ${d.status || 'accepted'}`
-          const timeLine = d.timeMs ? `\nTime: ${d.timeMs} ms` : ''
+            ? cases.map((c) => `Case ${c.index}: ${c.verdict}`).join('\n')
+            : ''
           setOutput(
-            `Verdict: ${d.status || 'accepted'}${timeLine}\nPassed: ${
-              d.passed ?? '?'
-            }/${d.total ?? '?'}${timeLine ? '' : '\n'}` +
-            (verdictLine ? '\n' + verdictLine : '') +
-            (d.explanation ? '\n\n' + d.explanation : ''),
+            `Verdict: ${d.status}\nPassed: ${d.passed ?? '?'}/${d.total ?? '?'}` +
+              (d.timeMs ? `\nTime: ${d.timeMs} ms` : '') +
+              (verdictLine ? '\n' + verdictLine : '') +
+              (d.explanation ? '\n\n' + d.explanation : ''),
           )
         } else {
+          setVerdict({
+            ok: false,
+            title: String(d.status || 'wrong answer').replace(/_/g, ' '),
+          })
           const verdictLine =
             d.cases && d.cases.length
               ? d.cases
@@ -216,6 +242,7 @@ export default function JavaChallenge({ challengeId }) {
         }
       })
       .catch((e) => {
+        setVerdict({ ok: false, title: 'Judge not reachable' })
         setOutput('Network error — the judge did not reply.')
         setError(e.message)
       })
@@ -223,6 +250,17 @@ export default function JavaChallenge({ challengeId }) {
         inFlightRef.current = false
         setLoading(false)
       })
+  }
+
+  const onEditorKeyDown = (e) => {
+    if (e.key !== 'Tab') return
+    e.preventDefault()
+    const el = e.target
+    const s = el.selectionStart
+    setCode(code.slice(0, s) + '    ' + code.slice(el.selectionEnd))
+    requestAnimationFrame(() => {
+      el.selectionStart = el.selectionEnd = s + 4
+    })
   }
 
   const title =
@@ -233,9 +271,12 @@ export default function JavaChallenge({ challengeId }) {
   const rewards =
     challenge
       ? { xp: challenge.xpReward, coins: challenge.coinReward }
+      : caseState
+      ? { xp: caseState.xpReward || 0, coins: caseState.coinReward || 0 }
       : { xp: 0, coins: 0 }
 
   const isSolved = !!(caseState?.solved && caseState.solved.includes(activeChallengeId || challenge?.id))
+  const position = deck && challenge ? deck.findIndex((c) => c.id === challenge.id) + 1 : 0
 
   return (
     <section className="nex-challenge" data-testid="challenge" aria-label="Java challenge">
@@ -253,6 +294,7 @@ export default function JavaChallenge({ challengeId }) {
             <div className="nex-challenge-heading">
               <p className="nex-challenge-kicker">
                 {world ? world.name : 'Case record'} <span>/ Java challenge</span>
+                {deck.length > 1 && <span>{` · ${position} of ${deck.length}`}</span>}
               </p>
               <h3 className="nex-challenge-title">
                 {isSolved ? 'Replay · ' : ''}{title}
@@ -263,10 +305,10 @@ export default function JavaChallenge({ challengeId }) {
             </div>
 
             <div className="nex-challenge-meta">
-              <span className={`nex-chip is-${difficulty.toLowerCase()}`}>{difficulty}</span>
+              <span className={`nex-chip is-${String(difficulty).toLowerCase()}`}>{difficulty}</span>
               <span className="nex-rewards">
                 <strong>{rewards.coins}</strong> coins
-                <span>·</span>
+                <span>{'·'}</span>
                 <strong>{rewards.xp}</strong> XP
               </span>
             </div>
@@ -328,6 +370,7 @@ ${t.expectedOutput}`}</pre>
               className="nex-code"
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              onKeyDown={onEditorKeyDown}
               placeholder={`// ${challenge?.statement || 'Enter Java code here'}`}
               rows={12}
               spellCheck={false}
@@ -345,7 +388,7 @@ ${t.expectedOutput}`}</pre>
               disabled={loading || !code.trim()}
               className="nex-btn nex-secondary"
             >
-              {loading ? 'Compiling…' : 'Compile check'}
+              {loading ? 'Working…' : 'Compile check'}
             </button>
             <button
               type="button"
@@ -356,6 +399,71 @@ ${t.expectedOutput}`}</pre>
               {loading ? 'Submitting…' : 'Submit'}
             </button>
           </div>
+
+          {/* Verdict sits right under the buttons so it is never off-screen. */}
+          {verdict && (
+            <div
+              role="status"
+              style={{
+                marginTop: 12,
+                padding: '10px 14px',
+                borderRadius: 10,
+                fontWeight: 800,
+                fontSize: 14,
+                textTransform: 'capitalize',
+                color: verdict.ok ? '#34d399' : '#f87171',
+                border: `1px solid ${verdict.ok ? 'rgba(52,211,153,.55)' : 'rgba(248,113,113,.55)'}`,
+                background: verdict.ok ? 'rgba(52,211,153,.10)' : 'rgba(248,113,113,.10)',
+              }}
+            >
+              {verdict.ok ? '✔ ' : '✖ '}{verdict.title}
+            </div>
+          )}
+
+          {beat && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: 14,
+                borderRadius: 12,
+                border: '1px solid rgba(245,196,83,.55)',
+                background: 'rgba(245,196,83,.08)',
+              }}
+            >
+              <div style={{ fontSize: 11, letterSpacing: 1.5, fontWeight: 800, color: '#f5c453' }}>
+                CASE UPDATE
+              </div>
+              <p style={{ margin: '6px 0 10px', lineHeight: 1.6, fontSize: 14 }}>{beat.line}</p>
+              {beat.realmClosed && (
+                <p style={{ margin: '0 0 10px', fontSize: 13.5, fontWeight: 700, color: '#34d399' }}>
+                  {beat.nextWorldName
+                    ? `Fair stop cleared — ${beat.nextWorldName} is now unlocked.`
+                    : 'Fair stop cleared.'}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {beat.nextChallenge && (
+                  <button
+                    type="button"
+                    className="nex-btn nex-primary"
+                    onClick={() => openChallenge(beat.nextChallenge)}
+                  >
+                    {'Next challenge →'}
+                  </button>
+                )}
+                {beat.realmClosed && !world?.nextWorld && (
+                  <button type="button" className="nex-btn nex-primary" onClick={() => setView('finale')}>
+                    {'Read the final report \u2192'}
+                  </button>
+                )}
+                {beat.realmClosed && (
+                  <button type="button" className="nex-btn nex-secondary" onClick={goMap}>
+                    {'Back to case map →'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <pre className="nex-console" aria-live="polite">
             {output || 'Compile or submit code to see results here.'}

@@ -1,8 +1,9 @@
-// Array Fair 3D scene.
+﻿// Fair-stop 3D scenes (one theme per realm).
 //
 // Props come from App.jsx:
 //   interactive  - true while exploring (false while the Java challenge is open)
-//   evidence     - worlds.arrays.evidence (id, title, object, position, ...)
+//   worldId      - arrays | linked | stack | tree | graph | dp (picks the theme)
+//   evidence     - worlds[worldId].evidence (id, title, object, position, ...)
 //   nearbyId     - id of the evidence the player is standing next to
 //   onNearby     - (id | null) => void
 //   onInspect    - (id) => void   (called when the player presses E)
@@ -13,7 +14,7 @@
 //   * Every geometry / material lives inside a <mesh>.
 //   * Only names that are imported or defined here are used.
 import { useEffect, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { CanvasTexture, DoubleSide, SRGBColorSpace } from 'three'
 import Detective from './Detective.jsx'
 import { useGame } from '../game/store.js'
@@ -29,11 +30,37 @@ const INTERACT_RADIUS = 2.2
 const CAMERA_OFFSET = { y: 6.2, z: 9.5 }
 
 // Solid props the detective cannot walk through (centre + half sizes).
-const BLOCKERS = [
-  { x: 0.2, z: 3.3, hw: 1.2, hd: 0.5 }, // sign-in desk
-  { x: 2.4, z: 2.9, hw: 1.0, hd: 0.6 }, // Table 7
-  { x: 7, z: -1, hw: 2.0, hd: 1.5 }, // fair office
-]
+// BLOCKERS-START
+const BLOCKERS_BY_WORLD = {
+  arrays: [
+    { x: 0.2, z: 3.3, hw: 1.2, hd: 0.5 }, // sign-in desk
+    { x: 2.4, z: 2.9, hw: 1.0, hd: 0.6 }, // Table 7
+    { x: 7, z: -1, hw: 2.0, hd: 1.5 }, // fair office
+  ],
+  linked: [
+    { x: 11.3, z: -1.5, hw: 1.7, hd: 1.7 }, // maintenance building
+    { x: 3.5, z: -0.4, hw: 1.0, hd: 0.6 }, // lost & found booth
+  ],
+  stack: [
+    { x: -9.5, z: 0.5, hw: 1.0, hd: 1.0 }, // ticket stack
+    { x: -4, z: 1.2, hw: 1.6, hd: 0.6 }, // prize counter
+  ],
+  tree: [
+    { x: -8, z: -1, hw: 0.8, hd: 0.5 }, // key cabinet
+    { x: -1.5, z: -0.8, hw: 0.5, hd: 0.5 }, // play-frame post
+    { x: 5.5, z: -0.8, hw: 0.5, hd: 0.5 }, // play-frame post
+  ],
+  graph: [
+    { x: 10.8, z: -1.5, hw: 1.6, hd: 1.1 }, // stage building
+    { x: -5, z: 2, hw: 1.1, hd: 0.25 }, // map board
+  ],
+  dp: [
+    { x: -4.5, z: 1.5, hw: 2.1, hd: 0.3 }, // puzzle board
+    { x: 3, z: -0.3, hw: 1.2, hd: 0.55 }, // judges' table
+    { x: 8.5, z: 1.5, hw: 1.2, hd: 0.55 }, // report desk
+  ],
+}
+// BLOCKERS-END
 
 const STALL_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6']
 const TREES = [
@@ -51,9 +78,9 @@ const TREES = [
 ]
 
 // ---------------------------------------------------------------- pure helpers
-function isBlocked(x, z) {
+function isBlocked(blockers, x, z) {
   if (x < BOUNDS.minX || x > BOUNDS.maxX || z < BOUNDS.minZ || z > BOUNDS.maxZ) return true
-  for (const b of BLOCKERS) {
+  for (const b of blockers) {
     if (Math.abs(x - b.x) < b.hw + PLAYER_RADIUS && Math.abs(z - b.z) < b.hd + PLAYER_RADIUS) {
       return true
     }
@@ -317,6 +344,330 @@ function FairWorld() {
   )
 }
 
+// ---------------------------------------------------------------- shared bits
+function Box({ position, size, color, emissive, intensity = 0.6 }) {
+  return (
+    <mesh position={position} castShadow receiveShadow>
+      <boxGeometry args={size} />
+      <meshStandardMaterial
+        color={color}
+        emissive={emissive || '#000000'}
+        emissiveIntensity={emissive ? intensity : 0}
+        flatShading
+      />
+    </mesh>
+  )
+}
+
+function Flat({ x, z, w, d, color, y = 0.03 }) {
+  return (
+    <mesh position={[x, y, z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[w, d]} />
+      <meshStandardMaterial color={color} />
+    </mesh>
+  )
+}
+
+function GroundPlane({ color }) {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[140, 140]} />
+      <meshStandardMaterial color={color} />
+    </mesh>
+  )
+}
+
+// A thin rod between two points in the x/y plane (used by the tree frame).
+function Rod({ a, b, z = 0, color = '#94a3b8', radius = 0.09 }) {
+  const dx = b[0] - a[0]
+  const dy = b[1] - a[1]
+  const len = Math.hypot(dx, dy)
+  return (
+    <mesh position={[(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, z]} rotation={[0, 0, -Math.atan2(dx, dy)]} castShadow>
+      <cylinderGeometry args={[radius, radius, len, 8]} />
+      <meshStandardMaterial color={color} flatShading />
+    </mesh>
+  )
+}
+
+// A flat road between two points on the ground (used by Graph Town).
+function Road({ a, b, color = '#475569', width = 0.9 }) {
+  const dx = b[0] - a[0]
+  const dz = b[1] - a[1]
+  const len = Math.hypot(dx, dz)
+  return (
+    <mesh
+      position={[(a[0] + b[0]) / 2, 0.04, (a[1] + b[1]) / 2]}
+      rotation={[0, -Math.atan2(dz, dx), 0]}
+      receiveShadow
+    >
+      <boxGeometry args={[len, 0.06, width]} />
+      <meshStandardMaterial color={color} flatShading />
+    </mesh>
+  )
+}
+
+function Post({ x, z, color = '#ef4444' }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <cylinderGeometry args={[0.07, 0.07, 1, 8]} />
+        <meshStandardMaterial color="#cbd5e1" flatShading />
+      </mesh>
+      <mesh position={[0, 1.05, 0]} castShadow>
+        <sphereGeometry args={[0.14, 10, 10]} />
+        <meshStandardMaterial color={color} flatShading />
+      </mesh>
+    </group>
+  )
+}
+
+// ---------------------------------------------------------------- Linked List Roller Coaster
+const CAR_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#38bdf8', '#a78bfa', '#ec4899', '#14b8a6']
+
+function CoasterWorld() {
+  const names = ['A14', 'A15', 'A16', 'A17', 'A18', 'A19', 'A20']
+  return (
+    <group>
+      <GroundPlane color="#d9c9a0" />
+      <Flat x={1} z={2} w={7} d={26} color="#c4b08a" y={0.02} />
+      {/* the rail */}
+      <Box position={[0, 1.7, -3.4]} size={[27, 0.18, 0.4]} color="#64748b" />
+      {[-12, -6, 0, 6, 12].map((px) => (
+        <Box key={px} position={[px, 0.85, -3.4]} size={[0.3, 1.7, 0.3]} color="#475569" />
+      ))}
+      {/* the chain of cars: one link (A17) is missing */}
+      {names.map((n, i) => {
+        const cx = -9.6 + i * 3.2
+        const missing = n === 'A17'
+        return (
+          <group key={n}>
+            {missing ? null : (
+              <Box position={[cx, 2.35, -3.4]} size={[2.4, 0.8, 1.2]} color={CAR_COLORS[i]} />
+            )}
+            {i < names.length - 1 && !missing && names[i + 1] !== 'A17' ? (
+              <Box position={[cx + 1.6, 2.35, -3.4]} size={[0.8, 0.12, 0.12]} color="#e2e8f0" />
+            ) : null}
+            <Label
+              title={missing ? 'A17 ?' : n}
+              position={[cx, 3.5, -3.4]}
+              width={missing ? 1.1 : 0.9}
+              accent={missing ? '#f87171' : '#fbbf24'}
+            />
+          </group>
+        )
+      })}
+      {/* queue posts */}
+      {[0, 2, 4, 6, 8].map((pz) => (
+        <Post key={pz} x={-7.5} z={pz} color="#f59e0b" />
+      ))}
+      {/* lost & found */}
+      <Box position={[3.5, 0.6, -0.4]} size={[2, 1.2, 1.2]} color="#f1f5f9" />
+      <Box position={[3.5, 1.35, -0.4]} size={[2.4, 0.2, 1.6]} color="#38bdf8" />
+      <Label title="LOST & FOUND" position={[3.5, 2.3, -0.4]} width={1.6} accent="#38bdf8" />
+      {/* maintenance building */}
+      <Box position={[11.3, 1.5, -1.5]} size={[3.4, 3, 3.4]} color="#94a3b8" />
+      <Box position={[11.3, 3.2, -1.5]} size={[3.8, 0.3, 3.8]} color="#475569" />
+      <Box position={[9.58, 1, -1.5]} size={[0.1, 2, 1.1]} color="#7c3f00" />
+      <Label title="MAINTENANCE" position={[10.2, 4.2, -1.5]} width={1.7} accent="#f59e0b" />
+      <Banner x={-10} z={6} color="#ef4444" />
+      <Banner x={12} z={7} color="#3b82f6" />
+      {TREES.map(([tx, tz, ts]) => (
+        <Tree key={`${tx}:${tz}`} x={tx} z={tz} scale={ts} />
+      ))}
+    </group>
+  )
+}
+
+// ---------------------------------------------------------------- Stack & Queue Arcade
+function ArcadeWorld() {
+  const colors = ['#ec4899', '#22d3ee', '#a78bfa', '#facc15', '#34d399', '#fb7185']
+  return (
+    <group>
+      <GroundPlane color="#352f6b" />
+      <Flat x={1} z={2} w={8} d={26} color="#4338ca" y={0.02} />
+      {/* cabinets */}
+      {colors.map((c, i) => (
+        <group key={c} position={[-10 + i * 4, 0, -3.8]}>
+          <Box position={[0, 1.3, 0]} size={[1.9, 2.6, 1.3]} color="#1e1b4b" />
+          <Box position={[0, 1.7, 0.68]} size={[1.4, 0.9, 0.06]} color={c} emissive={c} intensity={0.9} />
+          <Box position={[0, 0.95, 0.5]} size={[1.5, 0.15, 0.6]} color="#0f172a" />
+        </group>
+      ))}
+      <Label title="ARCADE" position={[0, 4.4, -3.8]} width={2.2} accent="#22d3ee" />
+      {/* the ticket stack (last in, first out) */}
+      {[0, 1, 2, 3].map((i) => (
+        <Box key={i} position={[-9.5, 0.4 + i * 0.8, 0.5]} size={[1.6 - i * 0.1, 0.78, 1.6 - i * 0.1]} color={colors[i]} />
+      ))}
+      <Label title="TOP" position={[-9.5, 4.0, 0.5]} width={0.9} accent="#facc15" />
+      {/* prize counter */}
+      <Box position={[-4, 0.5, 1.2]} size={[3.2, 1, 1.2]} color="#f1f5f9" />
+      <Box position={[-4, 1.1, 1.2]} size={[3.4, 0.2, 1.4]} color="#ec4899" emissive="#ec4899" intensity={0.5} />
+      <Label title="PRIZES" position={[-4, 2.2, 1.2]} width={1.2} accent="#ec4899" />
+      {/* queue screen on a pole */}
+      <Box position={[9, 1.2, 0.5]} size={[0.2, 2.4, 0.2]} color="#94a3b8" />
+      <Box position={[9, 2.9, 0.5]} size={[2.6, 1.4, 0.15]} color="#0f172a" emissive="#22d3ee" intensity={0.7} />
+      <Label title="QUEUE 4 > 6" position={[9, 4.2, 0.5]} width={1.5} accent="#22d3ee" />
+      {/* queue ropes */}
+      {[5, 6.5, 8].map((px) => (
+        <Post key={px} x={px} z={6} color="#22d3ee" />
+      ))}
+    </group>
+  )
+}
+
+// ---------------------------------------------------------------- Tree Playground
+function PlaygroundWorld() {
+  const root = [0, 5.2]
+  const l = [-4, 3.6]
+  const r = [4, 3.6]
+  const leaves = [
+    [-6, 2],
+    [-2, 2],
+    [2, 2],
+    [6, 2],
+  ]
+  const nodes = [
+    { p: root, name: 'MR. RAO', c: '#f87171' },
+    { p: l, name: 'OFFICE', c: '#38bdf8' },
+    { p: r, name: 'PRINTING BOOTH', c: '#fbbf24' },
+    { p: leaves[0], name: '', c: '#34d399' },
+    { p: leaves[1], name: '', c: '#34d399' },
+    { p: leaves[2], name: 'DEV', c: '#a78bfa' },
+    { p: leaves[3], name: '', c: '#34d399' },
+  ]
+  return (
+    <group>
+      <GroundPlane color="#86c777" />
+      <Flat x={1} z={2} w={7} d={26} color="#e9d9a8" y={0.02} />
+      <Flat x={4.5} z={4} w={4} d={3} color="#f1dfae" y={0.03} />
+      {/* the play frame: a binary tree */}
+      <Rod a={root} b={l} z={-2.5} />
+      <Rod a={root} b={r} z={-2.5} />
+      <Rod a={l} b={leaves[0]} z={-2.5} />
+      <Rod a={l} b={leaves[1]} z={-2.5} />
+      <Rod a={r} b={leaves[2]} z={-2.5} />
+      <Rod a={r} b={leaves[3]} z={-2.5} />
+      {nodes.map((n) => (
+        <mesh key={`${n.p[0]}:${n.p[1]}`} position={[n.p[0], n.p[1], -2.5]} castShadow>
+          <sphereGeometry args={[0.55, 16, 16]} />
+          <meshStandardMaterial color={n.c} emissive={n.c} emissiveIntensity={0.25} flatShading />
+        </mesh>
+      ))}
+      <Label title="MR. RAO" position={[0, 6.4, -2.5]} width={1.3} accent="#f87171" />
+      <Label title="OFFICE" position={[-4, 4.8, -2.5]} width={1.1} accent="#38bdf8" />
+      <Label title="PRINTING BOOTH" position={[4, 4.8, -2.5]} width={1.9} accent="#fbbf24" />
+      <Label title="DEV" position={[2, 3.2, -2.5]} width={0.9} accent="#a78bfa" />
+      {/* two legs holding the frame up */}
+      <Box position={[-1.5, 1.2, -0.8]} size={[0.3, 2.4, 0.3]} color="#78350f" />
+      <Box position={[5.5, 1.2, -0.8]} size={[0.3, 2.4, 0.3]} color="#78350f" />
+      {/* key cabinet */}
+      <Box position={[-8, 1, -1]} size={[1.6, 2, 1]} color="#a16207" />
+      <Label title="KEYS" position={[-8, 2.9, -1]} width={0.9} accent="#fbbf24" />
+      <Banner x={-11} z={5} color="#3b82f6" />
+      <Banner x={11} z={6} color="#ef4444" />
+      {TREES.map(([tx, tz, ts]) => (
+        <Tree key={`${tx}:${tz}`} x={tx} z={tz} scale={ts} />
+      ))}
+    </group>
+  )
+}
+
+// ---------------------------------------------------------------- Graph Town
+const GRAPH_NODES = {
+  office: { p: [-10, -1.5], name: 'OFFICE', c: '#38bdf8' },
+  gate: { p: [-4, -3.2], name: 'GATE', c: '#34d399' },
+  booth: { p: [1.5, -1.5], name: 'BOOTH', c: '#fbbf24' },
+  square: { p: [1.5, 5.5], name: 'SQUARE', c: '#f472b6' },
+  stage: { p: [9, -1.5], name: 'STAGE', c: '#a78bfa' },
+}
+const GRAPH_EDGES = [
+  ['office', 'gate'],
+  ['office', 'booth'],
+  ['gate', 'booth'],
+  ['booth', 'stage'],
+  ['booth', 'square'],
+]
+
+function GraphWorld() {
+  return (
+    <group>
+      <GroundPlane color="#aab4bf" />
+      {GRAPH_EDGES.map(([a, b]) => (
+        <Road key={`${a}-${b}`} a={GRAPH_NODES[a].p} b={GRAPH_NODES[b].p} />
+      ))}
+      {Object.entries(GRAPH_NODES).map(([id, n]) => (
+        <group key={id} position={[n.p[0], 0, n.p[1]]}>
+          <mesh position={[0, 0.12, 0]} receiveShadow>
+            <cylinderGeometry args={[1, 1, 0.16, 24]} />
+            <meshStandardMaterial color={n.c} flatShading />
+          </mesh>
+          <Label title={n.name} position={[0, 2.2, 0]} width={1.2} accent={n.c} />
+        </group>
+      ))}
+      <Box position={[10.8, 1.2, -1.5]} size={[3, 2.4, 2]} color="#cbd5e1" />
+      <Box position={[10.8, 2.6, -1.5]} size={[3.4, 0.25, 2.4]} color="#7c3aed" />
+      <Box position={[-10.5, 1.2, -3]} size={[2.4, 2.4, 1.6]} color="#dbe4ee" />
+      <Box position={[-10.5, 2.55, -3]} size={[2.8, 0.25, 2]} color="#b45309" />
+      {/* map board */}
+      <Box position={[-5, 1.0, 2]} size={[2.2, 1.6, 0.15]} color="#f8fafc" />
+      <Box position={[-5.9, 0.4, 2]} size={[0.12, 0.8, 0.12]} color="#64748b" />
+      <Box position={[-4.1, 0.4, 2]} size={[0.12, 0.8, 0.12]} color="#64748b" />
+      <Label title="TOWN MAP" position={[-5, 2.4, 2]} width={1.3} accent="#38bdf8" />
+      {TREES.map(([tx, tz, ts]) => (
+        <Tree key={`${tx}:${tz}`} x={tx} z={tz} scale={ts} />
+      ))}
+    </group>
+  )
+}
+
+// ---------------------------------------------------------------- DP Puzzle Park
+function PuzzleWorld() {
+  const times = ['8:05', '8:18', '8:26', '8:40']
+  const tileColors = ['#f87171', '#fbbf24', '#34d399', '#60a5fa']
+  const grid = []
+  for (let r = 0; r < 3; r += 1) {
+    for (let c = 0; c < 5; c += 1) {
+      grid.push([-12 + c * 1.1, 6 + r * 1.1, (r + c) % 2])
+    }
+  }
+  return (
+    <group>
+      <GroundPlane color="#8fd3c8" />
+      <Flat x={1} z={2} w={7} d={26} color="#cdeee8" y={0.02} />
+      {/* the timeline strip */}
+      {times.map((t, i) => (
+        <group key={t}>
+          <Box position={[-6 + i * 4, 0.12, -3]} size={[2.6, 0.2, 1.8]} color={tileColors[i]} />
+          <Label title={t} position={[-6 + i * 4, 1.3, -3]} width={0.9} accent={tileColors[i]} />
+        </group>
+      ))}
+      {/* a dp table on the ground */}
+      {grid.map(([gx, gz, alt]) => (
+        <Flat key={`${gx}:${gz}`} x={gx} z={gz} w={1} d={1} color={alt ? '#5eead4' : '#99f6e4'} y={0.04} />
+      ))}
+      {/* puzzle board */}
+      <Box position={[-4.5, 1.1, 1.5]} size={[4, 2.2, 0.2]} color="#f8fafc" />
+      <Box position={[-6, 0.4, 1.5]} size={[0.15, 0.8, 0.15]} color="#64748b" />
+      <Box position={[-3, 0.4, 1.5]} size={[0.15, 0.8, 0.15]} color="#64748b" />
+      <Label title="TIMELINE" position={[-4.5, 2.9, 1.5]} width={1.5} accent="#14b8a6" />
+      {/* judges' table */}
+      <Table x={3} z={-0.3} w={2.4} d={1.1} label="JUDGES" paper />
+      {/* report desk */}
+      <Table x={8.5} z={1.5} w={2.4} d={1.1} label="REPORT" />
+      {/* big puzzle blocks */}
+      <Box position={[-10, 0.8, -1.5]} size={[1.6, 1.6, 1.6]} color="#f472b6" />
+      <Box position={[-8.2, 0.5, -1.2]} size={[1, 1, 1]} color="#fbbf24" />
+      <Box position={[11, 0.8, -3]} size={[1.6, 1.6, 1.6]} color="#a78bfa" />
+      <Banner x={-11} z={3} color="#14b8a6" />
+      <Banner x={11} z={6} color="#f59e0b" />
+      {TREES.map(([tx, tz, ts]) => (
+        <Tree key={`${tx}:${tz}`} x={tx} z={tz} scale={ts} />
+      ))}
+    </group>
+  )
+}
+
 // ---------------------------------------------------------------- evidence
 function MarkerShape({ kind, color }) {
   if (kind === 'laptop') {
@@ -338,6 +689,22 @@ function MarkerShape({ kind, color }) {
       <mesh castShadow>
         <icosahedronGeometry args={[0.4, 0]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} flatShading />
+      </mesh>
+    )
+  }
+  if (kind === 'ring') {
+    return (
+      <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.32, 0.09, 12, 24]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} flatShading />
+      </mesh>
+    )
+  }
+  if (kind === 'cube') {
+    return (
+      <mesh castShadow>
+        <boxGeometry args={[0.6, 0.6, 0.6]} />
+        <meshStandardMaterial color="#f1f5f9" emissive={color} emissiveIntensity={0.55} flatShading />
       </mesh>
     )
   }
@@ -391,16 +758,16 @@ function Marker({ entry, isNearby, isFound }) {
 }
 
 // ---------------------------------------------------------------- player
-function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
+function PlayerRig({ interactive, paused, evidence, blockers, onNearby, onInspect }) {
   const group = useRef(null)
   const player = useRef({ x: SPAWN.x, z: SPAWN.z, heading: 0, leanX: 0, leanZ: 0, time: 0 })
   const held = useRef(new Set())
   const nearby = useRef(null)
   const walking = useRef(false)
-  const live = useRef({ interactive, paused, evidence, onNearby, onInspect })
+  const live = useRef({ interactive, paused, evidence, blockers, onNearby, onInspect })
 
   useEffect(() => {
-    live.current = { interactive, paused, evidence, onNearby, onInspect }
+    live.current = { interactive, paused, evidence, blockers, onNearby, onInspect }
   })
 
   useEffect(() => {
@@ -451,6 +818,7 @@ function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
     const dt = Math.min(delta, 0.05)
     const active = s.interactive && !s.paused
     p.time += dt
+    window.__nexauraPlayer = { x: p.x, z: p.z }
 
     if (!active) held.current.clear()
     const keys = held.current
@@ -464,9 +832,9 @@ function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
       dx /= len
       dz /= len
       const nx = p.x + dx * SPEED * dt
-      if (!isBlocked(nx, p.z)) p.x = nx
+      if (!isBlocked(s.blockers, nx, p.z)) p.x = nx
       const nz = p.z + dz * SPEED * dt
-      if (!isBlocked(p.x, nz)) p.z = nz
+      if (!isBlocked(s.blockers, p.x, nz)) p.z = nz
     }
 
     // The detective keeps facing the camera. He only turns a little toward
@@ -512,8 +880,42 @@ function PlayerRig({ interactive, paused, evidence, onNearby, onInspect }) {
   )
 }
 
+// ---------------------------------------------------------------- cleanup
+// Browsers only allow a handful of live WebGL contexts. Without this, leaving
+// a realm keeps its context alive and after a few realms the next scene fails
+// with "Error creating WebGL context". Runs when the Canvas goes away.
+function ContextCleanup() {
+  const gl = useThree((state) => state.gl)
+  useEffect(
+    () => () => {
+      // Wait a tick: in dev, React may unmount and remount the same canvas.
+      setTimeout(() => {
+        if (gl.domElement && gl.domElement.isConnected) return
+        try {
+          gl.dispose()
+          gl.forceContextLoss()
+        } catch (_e) {
+          /* already gone */
+        }
+      }, 0)
+    },
+    [gl],
+  )
+  return null
+}
+
 // ---------------------------------------------------------------- scene
+const THEMES = {
+  arrays: { sky: '#cfe8f7', fogNear: 38, ambient: 0.8, hemi: ['#dbeafe', '#6b8f5a', 0.9], sun: 2.2, World: FairWorld },
+  linked: { sky: '#bfe3f5', fogNear: 38, ambient: 0.85, hemi: ['#dbeafe', '#a8946a', 0.9], sun: 2.2, World: CoasterWorld },
+  stack: { sky: '#2b2660', fogNear: 30, ambient: 1.1, hemi: ['#c4b5fd', '#312e81', 1.2], sun: 1.6, World: ArcadeWorld },
+  tree: { sky: '#c7ecff', fogNear: 38, ambient: 0.8, hemi: ['#dbeafe', '#6b8f5a', 0.9], sun: 2.2, World: PlaygroundWorld },
+  graph: { sky: '#d7e3f4', fogNear: 38, ambient: 0.9, hemi: ['#e0f2fe', '#94a3b8', 0.9], sun: 2.0, World: GraphWorld },
+  dp: { sky: '#d4f3f0', fogNear: 38, ambient: 0.9, hemi: ['#ecfeff', '#5eead4', 0.9], sun: 2.0, World: PuzzleWorld },
+}
+
 export default function Scene({
+  worldId = 'arrays',
   interactive = true,
   evidence = NONE,
   nearbyId = null,
@@ -522,9 +924,13 @@ export default function Scene({
   paused = false,
 }) {
   const found = useGame((s) => s.caseState?.evidence ?? NONE)
+  const theme = THEMES[worldId] || THEMES.arrays
+  const World = theme.World
+  const blockers = BLOCKERS_BY_WORLD[worldId] || BLOCKERS_BY_WORLD.arrays
 
   return (
     <Canvas
+      key={worldId}
       shadows="percentage"
       dpr={[1, 1.5]}
       camera={{
@@ -535,14 +941,15 @@ export default function Scene({
       }}
       gl={{ antialias: true }}
     >
-      <color attach="background" args={['#cfe8f7']} />
-      <fog attach="fog" args={['#cfe8f7', 38, 85]} />
+      <ContextCleanup />
+      <color attach="background" args={[theme.sky]} />
+      <fog attach="fog" args={[theme.sky, theme.fogNear, 85]} />
 
-      <ambientLight intensity={0.8} />
-      <hemisphereLight args={['#dbeafe', '#6b8f5a', 0.9]} />
+      <ambientLight intensity={theme.ambient} />
+      <hemisphereLight args={theme.hemi} />
       <directionalLight
         position={[10, 18, 12]}
-        intensity={2.2}
+        intensity={theme.sun}
         color="#fff4d6"
         castShadow
         shadow-mapSize={[1024, 1024]}
@@ -554,14 +961,14 @@ export default function Scene({
         shadow-camera-far={70}
       />
 
-      <FairWorld />
+      <World />
 
       {evidence.map((entry) => (
         <Marker
           key={entry.id}
           entry={entry}
           isNearby={nearbyId === entry.id}
-          isFound={found.includes(entry.id)}
+          isFound={found.some((item) => item && item.id === entry.id)}
         />
       ))}
 
@@ -569,6 +976,7 @@ export default function Scene({
         interactive={interactive}
         paused={paused}
         evidence={evidence}
+        blockers={blockers}
         onNearby={onNearby}
         onInspect={onInspect}
       />

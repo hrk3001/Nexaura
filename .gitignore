@@ -29,3 +29,8 @@ client/test/shots/
 # local-only holding folder: the retired AI-powered DSA platform + recovery archive.
 # Never pushed to GitHub.
 nexaura zero/
+
+node_modules/
+dist/
+.env
+recordings/
